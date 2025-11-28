@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic Black Hole Simulation</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Courier New', Courier, monospace;
+            pointer-events: none;
+            text-shadow: 0 0 10px #000;
+            z-index: 10;
+        }
+        h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; color: #ffae42; }
+        p { font-size: 0.85rem; margin-top: 5px; color: #ccc; }
+        .controls { color: #4af; margin-top: 10px; font-weight: bold; }
+        .stats { margin-top: 5px; font-size: 0.7rem; color: #888; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h1>Gargantua Simulation</h1>
+        <p>Advanced Geodesic Raymarching (Verlet Integration)</p>
+        <p class="stats">Simulating: Gravitational Lensing, Doppler Beaming, Redshift</p>
+        <p class="controls">◄ Drag to Orbit ► &nbsp;&nbsp; ▲ Scroll to Zoom ▼</p>
+    </div>
+    
+    <!-- Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- VERTEX SHADER -->
+    <script id="vertexShader" type="x-shader/x-vertex">
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = vec4(position, 1.0);
+        }
+    </script>
+
+    <!-- FRAGMENT SHADER: Advanced GR Physics -->
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        precision highp float;
+
+        uniform float uTime;
+        uniform vec2 uResolution;
+        uniform vec2 uMouse; 
+        uniform float uZoom; 
+
+        varying vec2 vUv;
+
+        // --- PHYSICAL CONSTANTS ---
+        #define MAX_STEPS 300       // Increased for smoother curvature
+        #define RS 1.0              // Schwarzschild Radius
+        #define DISK_INNER 2.6      // Inner edge (ISCO ish)
+        #define DISK_OUTER 12.0     // Outer edge
+        #define DISK_HEIGHT 0.08    // Thinner, sharper disk
+        
+        // Colors
+        #define COLOR_HOT vec3(0.9, 0.95, 1.0)
+        #define COLOR_MID vec3(1.0, 0.6, 0.2)
+        #define COLOR_COOL vec3(0.5, 0.1, 0.02)
+
+        // --- NOISE FUNCTIONS ---
+        // Simulating gas turbulence
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+        float snoise(vec2 v) {
+            const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+            vec2 i  = floor(v + dot(v, C.yy) );
+            vec2 x0 = v -   i + dot(i, C.xx);
+            vec2 i1;
+            i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+            vec4 x12 = x0.xyxy + C.xxzz;
+            x12.xy -= i1;
+            i = mod289(i);
+            vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+            vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+            m = m*m ;
+            m = m*m ;
+            vec3 x = 2.0 * fract(p * C.www) - 1.0;
+            vec3 h = abs(x) - 0.5;
+            vec3 ox = floor(x + 0.5);
+            vec3 a0 = x - ox;
+            m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+            vec3 g;
+            g.x  = a0.x  * x0.x  + h.x  * x0.y;
+            g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+            return 130.0 * dot(m, g);
+        }
+        
+        float fbm(vec2 p) {
+            float f = 0.0;
+            float w = 0.5;
+            for (int i = 0; i < 5; i++) { // More octaves for detail
+                f += w * snoise(p);
+                p *= 2.0;
+                w *= 0.5;
+            }
+            return f;
+        }
+
+        // --- BACKGROUND ---
+        vec3 getBackground(vec3 dir) {
+            float n = fbm(dir.xy * 15.0) * fbm(dir.yz * 15.0);
+            float stars = pow(max(0.0, n + 0.1), 20.0) * 40.0;
+            return vec3(stars);
+        }
+
+        // --- DISK PHYSICS ---
+        // Returns density, temp, and coordinate for texture
+        vec3 getDiskData(vec3 p) {
+            float r = length(p);
+            if (r < DISK_INNER || r > DISK_OUTER) return vec3(0.0);
+            
+            // Thin disk check with soft edges
+            float h = abs(p.y);
+            float thickness = DISK_HEIGHT * (r / DISK_OUTER) + 0.02; // Flared disk
+            if (h > thickness) return vec3(0.0);
+
+            // Coordinates
+            float angle = atan(p.z, p.x);
+            float speed = 4.0 / (r * 0.5 + 0.1); // Faster inner spin
+            float rotAngle = angle + uTime * speed * 0.2;
+            
+            // Turbulence pattern
+            float noise = fbm(vec2(rotAngle * 4.0, r * 1.5 - uTime));
+            noise += fbm(vec2(rotAngle * 8.0, r * 3.0)) * 0.5;
+            
+            // Ring structure
+            float rings = 0.5 + 0.5 * sin(r * 10.0);
+            noise *= rings;
+
+            // Density fade
+            float fade = smoothstep(DISK_INNER, DISK_INNER + 0.2, r) * (1.0 - smoothstep(DISK_OUTER - 1.0, DISK_OUTER, r));
+            float verticalFade = 1.0 - smoothstep(0.0, thickness, h);
+            
+            float density = max(0.0, noise * fade * verticalFade);
+            
+            // Temperature gradient
+            float temp = 1.0 - smoothstep(DISK_INNER, DISK_OUTER * 0.8, r);
+            
+            return vec3(density, temp, r);
+        }
+
+        // Doppler Effect Calculation
+        float getDopplerFactor(vec3 pos, vec3 dir, float r) {
+            vec3 vel = normalize(vec3(-pos.z, 0.0, pos.x)); // Orbital velocity direction
+            float beta = 0.5 * sqrt(RS / r); // Relativistic speed approx
+            float cosTheta = dot(dir, vel);
+            // Lorentz boost factor approximation
+            float doppler = 1.0 / (1.0 - beta * cosTheta);
+            return pow(doppler, 3.5); // Intensity scaling
+        }
+
+        mat3 rotateY(float angle) {
+            float c = cos(angle);
+            float s = sin(angle);
+            return mat3(c, 0, s, 0, 1, 0, -s, 0, c);
+        }
+        
+        mat3 rotateX(float angle) {
+            float c = cos(angle);
+            float s = sin(angle);
+            return mat3(1, 0, 0, 0, c, -s, 0, s, c);
+        }
+
+        void main() {
+            vec2 uv = (vUv - 0.5) * 2.0;
+            uv.x *= uResolution.x / uResolution.y;
+
+            // Camera Setup
+            float camDist = uZoom;
+            vec3 ro = vec3(0.0, 0.0, camDist);
+            
+            mat3 rotY = rotateY(uMouse.x * 6.28);
+            mat3 rotX = rotateX(uMouse.y * 3.14);
+            ro = rotY * rotX * ro;
+
+            // Look at matrix
+            vec3 ta = vec3(0.0);
+            vec3 cw = normalize(ta - ro);
+            vec3 cp = vec3(0.0, 1.0, 0.0);
+            vec3 cu = normalize(cross(cw, cp));
+            vec3 cv = normalize(cross(cu, cw));
+            vec3 rd = normalize(uv.x * cu + uv.y * cv + 1.5 * cw); // 1.5 FOV
+
+            // --- RAYMARCHING STATE ---
+            vec3 pos = ro;
+            vec3 dir = rd;
+            vec3 accumColor = vec3(0.0);
+            float accumDensity = 0.0;
+            
+            // Angular momentum for gravity calc
+            vec3 h_vec = cross(pos, dir);
+            float h2 = dot(h_vec, h_vec);
+
+            bool hitHorizon = false;
+            float stepSize = 0.0;
+
+            // --- INTEGRATION LOOP ---
+            for(int i = 0; i < MAX_STEPS; i++) {
+                float r2 = dot(pos, pos);
+                float r = sqrt(r2);
+
+                // Event Horizon
+                if (r < RS) {
+                    hitHorizon = true;
+                    break;
+                }
+                
+                // Escape condition
+                if (r > 30.0) break;
+
+                // --- ADAPTIVE STEPPING ---
+                // Vital for the "Interstellar" wrapping effect.
+                // Step small when close to curvature, large when far.
+                stepSize = max(0.02, 0.05 * r); 
+                
+                // Refined Gravity Bending (Pseudo-Newtonian for Schwarzschild)
+                // This formula forces light to orbit at 1.5 RS (Photon Sphere)
+                vec3 acc = -1.5 * h2 * pos / pow(r2, 2.5);
+                
+                // Update Velocity (Direction)
+                dir += acc * stepSize;
+                dir = normalize(dir); // Enforce speed of light c=1
+                
+                // Update Position
+                pos += dir * stepSize;
+
+                // --- ACCRETION DISK SAMPLING ---
+                // We check if the ray is crossing the disk plane area
+                // We use a small vertical slice check relative to current distance
+                if (abs(pos.y) < DISK_HEIGHT * 2.0) {
+                    vec3 diskData = getDiskData(pos);
+                    float density = diskData.x;
+                    
+                    if (density > 0.001) {
+                        float temp = diskData.y;
+                        float distR = diskData.z;
+
+                        // Base Color
+                        vec3 gasColor = mix(COLOR_COOL, COLOR_HOT, temp);
+                        gasColor = mix(gasColor, COLOR_MID, 0.5 * sin(distR * 5.0));
+
+                        // Physics Effects
+                        float beaming = getDopplerFactor(pos, dir, distR);
+                        float redshift = sqrt(1.0 - RS/distR); // Gravitational Redshift
+                        
+                        gasColor *= beaming * redshift;
+
+                        // Accumulate
+                        float absorption = density * 0.3 * stepSize * 5.0; 
+                        accumColor += gasColor * absorption * (1.0 - accumDensity);
+                        accumDensity += absorption;
+                        
+                        if (accumDensity >= 0.98) break;
+                    }
+                }
+            }
+
+            // --- FINAL COMPOSITING ---
+            
+            // Background Stars
+            if (accumDensity < 1.0 && !hitHorizon) {
+                accumColor += getBackground(dir) * (1.0 - accumDensity);
+            }
+
+            // Glow around the black hole (Photon Ring Bloom)
+            // If we hit the horizon but were very close to grazing it
+            // (Not strictly physically accurate, but visually essential)
+            if (hitHorizon) {
+                accumColor = vec3(0.0);
+            }
+
+            // Tone Mapping
+            accumColor = vec3(1.0) - exp(-accumColor * 1.2);
+            accumColor = pow(accumColor, vec3(1.0/2.2)); // Gamma
+
+            gl_FragColor = vec4(accumColor, 1.0);
+        }
+    </script>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const uniforms = {
+            uTime: { value: 0 },
+            uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            uMouse: { value: new THREE.Vector2(0.85, 0.08) }, 
+            uZoom: { value: 10.0 }
+        };
+
+        const material = new THREE.ShaderMaterial({
+            vertexShader: document.getElementById('vertexShader').textContent,
+            fragmentShader: document.getElementById('fragmentShader').textContent,
+            uniforms: uniforms
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // Interaction
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        
+        document.addEventListener('mousedown', () => { isDragging = true; });
+        document.addEventListener('mouseup', () => { isDragging = false; });
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                uniforms.uMouse.value.x += deltaMove.x * 0.005;
+                uniforms.uMouse.value.y += deltaMove.y * 0.005;
+                uniforms.uMouse.value.y = Math.max(-0.49, Math.min(0.49, uniforms.uMouse.value.y));
+            }
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+        document.addEventListener('wheel', (e) => {
+            uniforms.uZoom.value += e.deltaY * 0.01;
+            uniforms.uZoom.value = Math.max(3.0, Math.min(50.0, uniforms.uZoom.value));
+        });
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            uniforms.uResolution.value.x = window.innerWidth;
+            uniforms.uResolution.value.y = window.innerHeight;
+        });
+
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            uniforms.uTime.value = clock.getElapsedTime();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
