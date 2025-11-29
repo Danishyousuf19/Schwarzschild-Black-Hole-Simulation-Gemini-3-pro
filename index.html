@@ -3,32 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realistic Black Hole Simulation</title>
+    <meta name="google-site-verification" content="8_Ga9V913B5mAxE_66m48wSNtWDKyux-g9zVSDCQlxU" />
+    <meta name="description" content="Real-time 3D simulation of a Schwarzschild Black Hole using WebGL raymarching. Features gravitational lensing, accretion disk physics, and relativistic doppler effects.">
+    <title>Gargantua: Realistic Black Hole Simulation</title>
+    <meta name="google-site-verification" content="8_Ga9V913B5mAxE_66m48wSNtWDKyux-g9zVSDCQlxU" />
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; }
+        :root {
+            --primary: #ff9d00;
+            --glass: rgba(20, 20, 30, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Roboto', sans-serif; color: white; }
         canvas { display: block; width: 100vw; height: 100vh; }
-        #ui {
+        
+        /* UI Container */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Header */
+        header {
+            padding: 20px;
+            pointer-events: auto;
+            text-shadow: 0 0 20px black;
+        }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            font-size: 2rem;
+            color: var(--primary);
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(255, 157, 0, 0.5);
+        }
+        .subtitle { font-size: 0.9rem; opacity: 0.8; letter-spacing: 1px; }
+
+        /* Floating Dropdown Menu */
+        #menu-container {
             position: absolute;
             top: 20px;
-            left: 20px;
-            color: rgba(255, 255, 255, 0.9);
-            font-family: 'Courier New', Courier, monospace;
-            pointer-events: none;
-            text-shadow: 0 0 10px #000;
-            z-index: 10;
+            right: 20px;
+            z-index: 100;
+            pointer-events: auto;
         }
-        h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; color: #ffae42; }
-        p { font-size: 0.85rem; margin-top: 5px; color: #ccc; }
-        .controls { color: #4af; margin-top: 10px; font-weight: bold; }
-        .stats { margin-top: 5px; font-size: 0.7rem; color: #888; }
+
+        #menu-toggle {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: background 0.3s;
+        }
+        #menu-toggle:hover { background: rgba(255, 255, 255, 0.1); }
+        
+        #glass-menu {
+            display: none; /* Hidden by default */
+            margin-top: 10px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            flex-direction: column;
+            gap: 5px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        #glass-menu.open { display: flex; }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .menu-item span { font-size: 20px; }
+        
+        /* On-Screen Controls */
+        #controls-area {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px);
+            gap: 10px;
+            pointer-events: auto;
+        }
+        .ctrl-btn {
+            width: 50px;
+            height: 50px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .ctrl-btn:active { background: var(--primary); color: black; transform: scale(0.95); }
+        .ctrl-btn.up { grid-column: 2; grid-row: 1; }
+        .ctrl-btn.left { grid-column: 1; grid-row: 2; }
+        .ctrl-btn.down { grid-column: 2; grid-row: 2; }
+        .ctrl-btn.right { grid-column: 3; grid-row: 2; }
+        
+        /* Zoom Slider/Buttons */
+        #zoom-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        /* Footer */
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(to top, black, transparent);
+            font-size: 0.7rem;
+            color: #666;
+            pointer-events: auto;
+        }
+        footer a { color: var(--primary); text-decoration: none; }
+
+        /* Mobile Modal */
+        #mobile-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            text-align: center;
+            max-width: 300px;
+        }
+        .modal-btn {
+            background: var(--primary);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            #mobile-modal { display: flex; }
+            #controls-area { bottom: 20px; right: 20px; transform: scale(0.8); transform-origin: bottom right; }
+            #zoom-controls { bottom: 20px; left: 20px; transform: scale(0.8); transform-origin: bottom left; }
+            h1 { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <h1>Gargantua Simulation</h1>
-        <p>Advanced Geodesic Raymarching (Verlet Integration)</p>
-        <p class="stats">Simulating: Gravitational Lensing, Doppler Beaming, Redshift</p>
-        <p class="controls">◄ Drag to Orbit ► &nbsp;&nbsp; ▲ Scroll to Zoom ▼</p>
+
+    <!-- Mobile Warning Modal -->
+    <div id="mobile-modal">
+        <div class="modal-content">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary); margin-bottom: 10px;">desktop_windows</span>
+            <h3>Desktop Recommended</h3>
+            <p>For the best physics simulation experience, please switch to a larger screen.</p>
+            <button class="modal-btn" onclick="document.getElementById('mobile-modal').style.display='none'">Continue Anyway</button>
+        </div>
+    </div>
+
+    <!-- Main UI Layer -->
+    <div id="ui-layer">
+        
+        <!-- Header -->
+        <header>
+            <h1>GARGANTUA</h1>
+            <div class="subtitle">General Relativistic Raymarcher</div>
+        </header>
+
+        <!-- Dropdown Menu -->
+        <div id="menu-container">
+            <div id="menu-toggle">
+                <span class="material-symbols-outlined">menu</span>
+                <span>Menu</span>
+                <span class="material-symbols-outlined" id="menu-arrow">keyboard_arrow_down</span>
+            </div>
+            
+            <div id="glass-menu">
+                <div class="menu-item" style="border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; cursor: default;">
+                    <strong>Options</strong>
+                </div>
+                
+                <div class="menu-item" id="btn-travel">
+                    <span class="material-symbols-outlined">rocket_launch</span> Travel (Photon Mode)
+                </div>
+                <div class="menu-item" id="btn-reset">
+                    <span class="material-symbols-outlined">restart_alt</span> Reset View
+                </div>
+            </div>
+        </div>
+
+        <!-- Directional Controls -->
+        <div id="controls-area">
+            <div class="ctrl-btn up" id="btn-up"><span class="material-symbols-outlined">expand_less</span></div>
+            <div class="ctrl-btn left" id="btn-left"><span class="material-symbols-outlined">chevron_left</span></div>
+            <div class="ctrl-btn down" id="btn-down"><span class="material-symbols-outlined">expand_more</span></div>
+            <div class="ctrl-btn right" id="btn-right"><span class="material-symbols-outlined">chevron_right</span></div>
+        </div>
+
+        <!-- Zoom Controls -->
+        <div id="zoom-controls">
+            <div class="ctrl-btn" id="btn-in"><span class="material-symbols-outlined">add</span></div>
+            <div class="ctrl-btn" id="btn-out"><span class="material-symbols-outlined">remove</span></div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            Project by <a href="https://github.com/Danishyousuf19" target="_blank">Danish Yousuf</a> | Schwarzschild Metric Integration | Built with Gemini, WebGL & Three.js 
+        </footer>
     </div>
     
     <!-- Three.js from CDN -->
@@ -43,7 +271,7 @@
         }
     </script>
 
-    <!-- FRAGMENT SHADER: Advanced GR Physics -->
+    <!-- FRAGMENT SHADER: Saturated & Advanced -->
     <script id="fragmentShader" type="x-shader/x-fragment">
         precision highp float;
 
@@ -55,23 +283,22 @@
         varying vec2 vUv;
 
         // --- PHYSICAL CONSTANTS ---
-        #define MAX_STEPS 300       // Increased for smoother curvature
-        #define RS 1.0              // Schwarzschild Radius
-        #define DISK_INNER 2.6      // Inner edge (ISCO ish)
-        #define DISK_OUTER 12.0     // Outer edge
-        #define DISK_HEIGHT 0.08    // Thinner, sharper disk
+        #define MAX_STEPS 200
+        #define RS 1.0              
+        #define DISK_INNER 2.6      
+        #define DISK_OUTER 14.0     
+        #define DISK_HEIGHT 0.08    
         
-        // Colors
-        #define COLOR_HOT vec3(0.9, 0.95, 1.0)
-        #define COLOR_MID vec3(1.0, 0.6, 0.2)
-        #define COLOR_COOL vec3(0.5, 0.1, 0.02)
+        // --- NEW GRADIENT: White -> Yellow -> Red ---
+        #define COLOR_HOT vec3(0.98, 0.98, 1.0)  // Bright White-Blue center
+        #define COLOR_MID vec3(1.0, 0.8, 0.2)    // Golden Yellow
+        #define COLOR_COOL vec3(0.6, 0.05, 0.02)  // Deep Red edge
+        #define COLOR_JET vec3(0.8, 0.9, 1.0)     // Jet color
 
-        // --- NOISE FUNCTIONS ---
-        // Simulating gas turbulence
+        // Noise functions
         vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
         vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
         vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
-
         float snoise(vec2 v) {
             const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
             vec2 i  = floor(v + dot(v, C.yy) );
@@ -96,68 +323,124 @@
             return 130.0 * dot(m, g);
         }
         
+        // Increased octaves for higher fidelity particles
         float fbm(vec2 p) {
             float f = 0.0;
             float w = 0.5;
-            for (int i = 0; i < 5; i++) { // More octaves for detail
+            for (int i = 0; i < 5; i++) {
                 f += w * snoise(p);
-                p *= 2.0;
+                p *= 2.1; // Slightly irregular scaling to break patterns
                 w *= 0.5;
             }
             return f;
         }
 
-        // --- BACKGROUND ---
         vec3 getBackground(vec3 dir) {
-            float n = fbm(dir.xy * 15.0) * fbm(dir.yz * 15.0);
-            float stars = pow(max(0.0, n + 0.1), 20.0) * 40.0;
+            // Bright sharp stars, no nebula
+            float n = fbm(dir.xy * 25.0) * fbm(dir.yz * 25.0);
+            float stars = pow(max(0.0, n), 28.0) * 500.0; // Brighter and sharper
             return vec3(stars);
         }
 
-        // --- DISK PHYSICS ---
-        // Returns density, temp, and coordinate for texture
+        // --- RELATIVISTIC JET FUNCTION ---
+        // Updated for Logarithmic/Elongated Cone Shape
+        vec3 getJet(vec3 p) {
+            // Distance from Y-axis
+            float r = length(p.xz);
+            // Distance along Y-axis
+            float h = abs(p.y);
+            
+            // Jet starts FURTHER away from hole (Requested: "origin of light little more far from center")
+            float startDist = RS * 2.8; 
+            if (h < startDist) return vec3(0.0);
+
+            // Calculate Distance from start point
+            float d = h - startDist;
+            
+            // --- CONE SHAPE LOGIC ---
+            // "decrease more radius at closer like a cone with small flat not pointer"
+            // Base width reduced to 0.06 (was 0.15) for a tighter start
+            // Expansion mixes linear and log for a natural trumpet flare
+            float coneWidth = 0.06 + d * 0.15 + log(1.0 + d * 2.0) * 0.6;
+            
+            if (r > coneWidth) return vec3(0.0);
+
+            // --- ANIMATION: RANDOM OUTWARD FLOW ---
+            // "random movement outwards not necessarily spiral or straight"
+            
+            // 1. Vertical Flow (INWARDS)
+            // Changed (-) to (+) to reverse direction towards the center
+            float flow = h * 3.0 + uTime * 8.0; 
+            
+            // 2. Horizontal Turbulence (Randomness)
+            // We distort the sampling coordinate using noise based on time and position
+            float angle = atan(p.z, p.x);
+            float turbulence = snoise(vec2(angle * 3.0, uTime * 0.5 + h));
+            
+            // Combine for the texture lookup
+            float noise = fbm(vec2(r * 5.0 + turbulence * 0.5, flow));
+            
+            // Fade out as it goes very far 
+            float fade = 1.0 / (1.0 + d * 1.5);
+            
+            // Smooth edges
+            float edge = smoothstep(coneWidth, coneWidth * 0.3, r);
+            
+            // Soft start
+            float startFade = smoothstep(startDist, startDist + 0.5, h);
+
+            // Density
+            float intensity = noise * fade * edge * startFade * 0.15; 
+            return COLOR_JET * intensity;
+        }
+
         vec3 getDiskData(vec3 p) {
             float r = length(p);
             if (r < DISK_INNER || r > DISK_OUTER) return vec3(0.0);
             
-            // Thin disk check with soft edges
             float h = abs(p.y);
-            float thickness = DISK_HEIGHT * (r / DISK_OUTER) + 0.02; // Flared disk
+            float thickness = DISK_HEIGHT * (r / DISK_OUTER) + 0.05;
             if (h > thickness) return vec3(0.0);
 
-            // Coordinates
             float angle = atan(p.z, p.x);
-            float speed = 4.0 / (r * 0.5 + 0.1); // Faster inner spin
+            float speed = 6.0 / (r * 0.5 + 0.1); 
             float rotAngle = angle + uTime * speed * 0.2;
             
-            // Turbulence pattern
-            float noise = fbm(vec2(rotAngle * 4.0, r * 1.5 - uTime));
-            noise += fbm(vec2(rotAngle * 8.0, r * 3.0)) * 0.5;
+            // --- CHAOTIC NOISE ---
+            // Removed radial time component (r - uTime) to stop "pulsing"
+            // Now strictly rotational drag
+            vec2 noiseCoord = vec2(rotAngle * 6.0, r); 
             
-            // Ring structure
-            float rings = 0.5 + 0.5 * sin(r * 10.0);
-            noise *= rings;
+            // Distort the coordinate for chaos
+            noiseCoord += vec2(snoise(noiseCoord * 0.5), snoise(noiseCoord * 0.5 + 10.0)) * 0.5;
+            
+            float noise = fbm(noiseCoord);
+            
+            // High contrast cuts for "Dark Red" gaps
+            noise = pow(max(0.0, noise), 1.6); 
+            
+            // Add grain
+            float grain = snoise(vec2(rotAngle * 60.0, r * 25.0));
+            noise += grain * 0.25;
 
-            // Density fade
-            float fade = smoothstep(DISK_INNER, DISK_INNER + 0.2, r) * (1.0 - smoothstep(DISK_OUTER - 1.0, DISK_OUTER, r));
+            float fade = smoothstep(DISK_INNER, DISK_INNER + 0.2, r) * (1.0 - smoothstep(DISK_OUTER - 2.0, DISK_OUTER, r));
             float verticalFade = 1.0 - smoothstep(0.0, thickness, h);
             
-            float density = max(0.0, noise * fade * verticalFade);
+            // Boost density
+            float density = max(0.0, noise * fade * verticalFade * 2.2);
             
-            // Temperature gradient
+            // Temp gradient
             float temp = 1.0 - smoothstep(DISK_INNER, DISK_OUTER * 0.8, r);
             
             return vec3(density, temp, r);
         }
 
-        // Doppler Effect Calculation
         float getDopplerFactor(vec3 pos, vec3 dir, float r) {
-            vec3 vel = normalize(vec3(-pos.z, 0.0, pos.x)); // Orbital velocity direction
-            float beta = 0.5 * sqrt(RS / r); // Relativistic speed approx
+            vec3 vel = normalize(vec3(-pos.z, 0.0, pos.x));
+            float beta = 0.6 * sqrt(RS / r); 
             float cosTheta = dot(dir, vel);
-            // Lorentz boost factor approximation
             float doppler = 1.0 / (1.0 - beta * cosTheta);
-            return pow(doppler, 3.5); // Intensity scaling
+            return pow(doppler, 4.0); 
         }
 
         mat3 rotateY(float angle) {
@@ -176,7 +459,7 @@
             vec2 uv = (vUv - 0.5) * 2.0;
             uv.x *= uResolution.x / uResolution.y;
 
-            // Camera Setup
+            // Camera Calc
             float camDist = uZoom;
             vec3 ro = vec3(0.0, 0.0, camDist);
             
@@ -184,60 +467,50 @@
             mat3 rotX = rotateX(uMouse.y * 3.14);
             ro = rotY * rotX * ro;
 
-            // Look at matrix
             vec3 ta = vec3(0.0);
             vec3 cw = normalize(ta - ro);
             vec3 cp = vec3(0.0, 1.0, 0.0);
             vec3 cu = normalize(cross(cw, cp));
             vec3 cv = normalize(cross(cu, cw));
-            vec3 rd = normalize(uv.x * cu + uv.y * cv + 1.5 * cw); // 1.5 FOV
+            vec3 rd = normalize(uv.x * cu + uv.y * cv + 1.4 * cw);
 
-            // --- RAYMARCHING STATE ---
             vec3 pos = ro;
             vec3 dir = rd;
             vec3 accumColor = vec3(0.0);
             float accumDensity = 0.0;
             
-            // Angular momentum for gravity calc
             vec3 h_vec = cross(pos, dir);
             float h2 = dot(h_vec, h_vec);
 
             bool hitHorizon = false;
             float stepSize = 0.0;
 
-            // --- INTEGRATION LOOP ---
             for(int i = 0; i < MAX_STEPS; i++) {
                 float r2 = dot(pos, pos);
                 float r = sqrt(r2);
 
-                // Event Horizon
-                if (r < RS) {
-                    hitHorizon = true;
-                    break;
-                }
+                // --- ELLIPTICAL DISTORTION CHECK ---
+                float r_ellip = length(pos * vec3(1.0, 1.15, 1.0)); // 15% squash
+                if (r_ellip < RS) { hitHorizon = true; break; }
                 
-                // Escape condition
-                if (r > 30.0) break;
+                if (r > 40.0) break;
 
-                // --- ADAPTIVE STEPPING ---
-                // Vital for the "Interstellar" wrapping effect.
-                // Step small when close to curvature, large when far.
                 stepSize = max(0.02, 0.05 * r); 
-                
-                // Refined Gravity Bending (Pseudo-Newtonian for Schwarzschild)
-                // This formula forces light to orbit at 1.5 RS (Photon Sphere)
                 vec3 acc = -1.5 * h2 * pos / pow(r2, 2.5);
-                
-                // Update Velocity (Direction)
                 dir += acc * stepSize;
-                dir = normalize(dir); // Enforce speed of light c=1
-                
-                // Update Position
+                dir = normalize(dir);
                 pos += dir * stepSize;
 
-                // --- ACCRETION DISK SAMPLING ---
-                // We check if the ray is crossing the disk plane area
-                // We use a small vertical slice check relative to current distance
+                // --- JET SAMPLING ---
+                if (abs(pos.y) > RS * 1.5 && length(pos.xz) < 3.0) { // Increased check bounds for wider jet
+                    vec3 jetCol = getJet(pos);
+                    if (length(jetCol) > 0.0) {
+                        accumColor += jetCol * (1.0 - accumDensity);
+                        accumDensity += 0.05; 
+                    }
+                }
+
+                // --- DISK SAMPLING ---
                 if (abs(pos.y) < DISK_HEIGHT * 2.0) {
                     vec3 diskData = getDiskData(pos);
                     float density = diskData.x;
@@ -246,18 +519,16 @@
                         float temp = diskData.y;
                         float distR = diskData.z;
 
-                        // Base Color
-                        vec3 gasColor = mix(COLOR_COOL, COLOR_HOT, temp);
-                        gasColor = mix(gasColor, COLOR_MID, 0.5 * sin(distR * 5.0));
+                        // New Color Logic: White -> Yellow -> Red
+                        vec3 gasColor = mix(COLOR_COOL, COLOR_MID, temp);
+                        gasColor = mix(gasColor, COLOR_HOT, smoothstep(0.6, 1.0, temp));
 
-                        // Physics Effects
                         float beaming = getDopplerFactor(pos, dir, distR);
-                        float redshift = sqrt(1.0 - RS/distR); // Gravitational Redshift
+                        float redshift = sqrt(1.0 - RS/distR);
                         
                         gasColor *= beaming * redshift;
 
-                        // Accumulate
-                        float absorption = density * 0.3 * stepSize * 5.0; 
+                        float absorption = density * 0.3 * stepSize * 6.0; 
                         accumColor += gasColor * absorption * (1.0 - accumDensity);
                         accumDensity += absorption;
                         
@@ -266,23 +537,17 @@
                 }
             }
 
-            // --- FINAL COMPOSITING ---
-            
-            // Background Stars
             if (accumDensity < 1.0 && !hitHorizon) {
                 accumColor += getBackground(dir) * (1.0 - accumDensity);
             }
 
-            // Glow around the black hole (Photon Ring Bloom)
-            // If we hit the horizon but were very close to grazing it
-            // (Not strictly physically accurate, but visually essential)
-            if (hitHorizon) {
-                accumColor = vec3(0.0);
-            }
-
-            // Tone Mapping
-            accumColor = vec3(1.0) - exp(-accumColor * 1.2);
-            accumColor = pow(accumColor, vec3(1.0/2.2)); // Gamma
+            // Bloom/Glow logic
+            accumColor = vec3(1.0) - exp(-accumColor * 1.5);
+            // Saturation boost
+            float gray = dot(accumColor, vec3(0.299, 0.587, 0.114));
+            accumColor = mix(vec3(gray), accumColor, 1.4);
+            
+            accumColor = pow(accumColor, vec3(1.0/2.2));
 
             gl_FragColor = vec4(accumColor, 1.0);
         }
@@ -301,7 +566,7 @@
             uTime: { value: 0 },
             uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
             uMouse: { value: new THREE.Vector2(0.85, 0.08) }, 
-            uZoom: { value: 10.0 }
+            uZoom: { value: 12.0 }
         };
 
         const material = new THREE.ShaderMaterial({
@@ -313,39 +578,134 @@
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 
-        // Interaction
+        // --- INTERACTION LOGIC ---
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
+        let isTraveling = false;
         
-        document.addEventListener('mousedown', () => { isDragging = true; });
-        document.addEventListener('mouseup', () => { isDragging = false; });
-        document.addEventListener('mousemove', (e) => {
+        // Mouse/Touch Handlers
+        const onDown = (x, y) => {
+            isDragging = true;
+            previousMousePosition = { x, y };
+        };
+        const onMove = (x, y) => {
             if (isDragging) {
-                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                const deltaMove = { x: x - previousMousePosition.x, y: y - previousMousePosition.y };
                 uniforms.uMouse.value.x += deltaMove.x * 0.005;
                 uniforms.uMouse.value.y += deltaMove.y * 0.005;
                 uniforms.uMouse.value.y = Math.max(-0.49, Math.min(0.49, uniforms.uMouse.value.y));
+                previousMousePosition = { x, y };
             }
-            previousMousePosition = { x: e.offsetX, y: e.offsetY };
-        });
+        };
+        const onUp = () => { isDragging = false; };
 
+        // Mouse Events
+        document.addEventListener('mousedown', (e) => onDown(e.offsetX, e.offsetY));
+        document.addEventListener('mousemove', (e) => onMove(e.offsetX, e.offsetY));
+        document.addEventListener('mouseup', onUp);
+        
+        // Touch Events
+        document.addEventListener('touchstart', (e) => onDown(e.touches[0].clientX, e.touches[0].clientY));
+        document.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY));
+        document.addEventListener('touchend', onUp);
+
+        // Scroll Zoom
         document.addEventListener('wheel', (e) => {
-            uniforms.uZoom.value += e.deltaY * 0.01;
-            uniforms.uZoom.value = Math.max(3.0, Math.min(50.0, uniforms.uZoom.value));
+            if(!isTraveling) {
+                uniforms.uZoom.value += e.deltaY * 0.01;
+                uniforms.uZoom.value = Math.max(2.5, Math.min(50.0, uniforms.uZoom.value));
+            }
         });
 
+        // --- BUTTON CONTROLS ---
+        const moveStep = 0.05;
+        let keys = { up: false, down: false, left: false, right: false, in: false, out: false };
+
+        const bindBtn = (id, key) => {
+            const btn = document.getElementById(id);
+            btn.addEventListener('mousedown', () => keys[key] = true);
+            btn.addEventListener('mouseup', () => keys[key] = false);
+            btn.addEventListener('mouseleave', () => keys[key] = false);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+        };
+
+        bindBtn('btn-up', 'up');
+        bindBtn('btn-down', 'down');
+        bindBtn('btn-left', 'left');
+        bindBtn('btn-right', 'right');
+        bindBtn('btn-in', 'in');
+        bindBtn('btn-out', 'out');
+
+        // --- MENU LOGIC ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuArrow = document.getElementById('menu-arrow');
+        const glassMenu = document.getElementById('glass-menu');
+
+        menuToggle.addEventListener('click', () => {
+            const isOpen = glassMenu.classList.contains('open');
+            if (isOpen) {
+                glassMenu.classList.remove('open');
+                menuArrow.textContent = 'keyboard_arrow_down';
+            } else {
+                glassMenu.classList.add('open');
+                menuArrow.textContent = 'keyboard_arrow_up';
+            }
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            isTraveling = false;
+            uniforms.uZoom.value = 12.0;
+            uniforms.uMouse.value.set(0.85, 0.08);
+            // Close menu on action
+            glassMenu.classList.remove('open');
+            menuArrow.textContent = 'keyboard_arrow_down';
+        });
+
+        document.getElementById('btn-travel').addEventListener('click', () => {
+            isTraveling = !isTraveling; // Toggle
+            if(isTraveling) {
+                if(uniforms.uZoom.value > 20.0) uniforms.uZoom.value = 20.0;
+            }
+            glassMenu.classList.remove('open');
+            menuArrow.textContent = 'keyboard_arrow_down';
+        });
+
+        // --- ANIMATION LOOP ---
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            uniforms.uTime.value += delta;
+
+            // Handle Button Movement
+            if (keys.left) uniforms.uMouse.value.x -= moveStep * 20 * delta;
+            if (keys.right) uniforms.uMouse.value.x += moveStep * 20 * delta;
+            if (keys.up) uniforms.uMouse.value.y = Math.min(0.49, uniforms.uMouse.value.y + moveStep * 20 * delta);
+            if (keys.down) uniforms.uMouse.value.y = Math.max(-0.49, uniforms.uMouse.value.y - moveStep * 20 * delta);
+            if (keys.in) uniforms.uZoom.value = Math.max(2.5, uniforms.uZoom.value - 10.0 * delta);
+            if (keys.out) uniforms.uZoom.value = Math.min(50.0, uniforms.uZoom.value + 10.0 * delta);
+
+            // Handle Travel Mode
+            if (isTraveling) {
+                const dist = uniforms.uZoom.value;
+                const speed = 2.0 + (15.0 / (dist * dist + 0.1)); 
+                uniforms.uZoom.value -= speed * delta;
+
+                if (uniforms.uZoom.value < 1.8) {
+                    uniforms.uZoom.value = 1.8;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+        
         window.addEventListener('resize', () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
             uniforms.uResolution.value.x = window.innerWidth;
             uniforms.uResolution.value.y = window.innerHeight;
         });
 
-        const clock = new THREE.Clock();
-        function animate() {
-            requestAnimationFrame(animate);
-            uniforms.uTime.value = clock.getElapsedTime();
-            renderer.render(scene, camera);
-        }
         animate();
     </script>
 </body>
