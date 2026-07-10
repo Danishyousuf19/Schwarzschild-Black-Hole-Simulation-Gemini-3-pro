@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="8_Ga9V913B5mAxE_66m48wSNtWDKyux-g9zVSDCQlxU" />
     <meta name="description" content="Real-time 3D simulation of a Schwarzschild Black Hole using WebGL raymarching. Features gravitational lensing, accretion disk physics, and relativistic doppler effects.">
     <title>Gargantua: Realistic Black Hole Simulation</title>
-    <meta name="google-site-verification" content="8_Ga9V913B5mAxE_66m48wSNtWDKyux-g9zVSDCQlxU" />
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -53,6 +51,10 @@
             right: 20px;
             z-index: 100;
             pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
         }
 
         #menu-toggle {
@@ -74,7 +76,6 @@
         
         #glass-menu {
             display: none; /* Hidden by default */
-            margin-top: 10px;
             background: var(--glass);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -100,8 +101,27 @@
             font-size: 0.9rem;
             white-space: nowrap;
         }
-        .menu-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .menu-item:hover, .menu-item.active { background: rgba(255, 255, 255, 0.15); border-left: 3px solid var(--primary); }
         .menu-item span { font-size: 20px; }
+
+        /* Feature 1: Orbit Control Panel */
+        #orbit-controls-panel {
+            display: none; /* Hidden unless in Orbit mode */
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            width: 200px;
+        }
+        #orbit-controls-panel.visible { display: flex; }
+        .slider-group { display: flex; flex-direction: column; gap: 5px; }
+        .slider-group label { font-size: 0.8rem; color: #ccc; display: flex; justify-content: space-between; }
+        .slider-group input[type=range] { accent-color: var(--primary); width: 100%; cursor: pointer; }
         
         /* On-Screen Controls */
         #controls-area {
@@ -217,8 +237,9 @@
             <div class="subtitle">General Relativistic Raymarcher</div>
         </header>
 
-        <!-- Dropdown Menu -->
+        <!-- Menus and Controls -->
         <div id="menu-container">
+            <!-- Main Dropdown -->
             <div id="menu-toggle">
                 <span class="material-symbols-outlined">menu</span>
                 <span>Menu</span>
@@ -227,14 +248,39 @@
             
             <div id="glass-menu">
                 <div class="menu-item" style="border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; cursor: default;">
-                    <strong>Options</strong>
+                    <strong>Camera Modes</strong>
                 </div>
-                
+                <!-- Mode Toggles -->
+                <div class="menu-item active" id="btn-manual">
+                    <span class="material-symbols-outlined">pan_tool</span> Manual Mode
+                </div>
+                <div class="menu-item" id="btn-orbit">
+                    <span class="material-symbols-outlined">360</span> Orbit (Cinematic)
+                </div>
                 <div class="menu-item" id="btn-travel">
                     <span class="material-symbols-outlined">rocket_launch</span> Travel (Photon Mode)
                 </div>
-                <div class="menu-item" id="btn-reset">
+                <div class="menu-item" id="btn-reset" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">
                     <span class="material-symbols-outlined">restart_alt</span> Reset View
+                </div>
+            </div>
+
+            <!-- Orbit Control Panel (Feature 1) -->
+            <div id="orbit-controls-panel">
+                <div style="font-size: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 5px;">
+                    <strong>Orbit Settings</strong>
+                </div>
+                <div class="slider-group">
+                    <label>Speed <span id="val-speed">0.05</span></label>
+                    <input type="range" id="orbit-speed" min="-0.2" max="0.2" step="0.01" value="0.05">
+                </div>
+                <div class="slider-group">
+                    <label>Radius <span id="val-radius">20.0</span></label>
+                    <input type="range" id="orbit-radius" min="3.0" max="45.0" step="0.5" value="20.0">
+                </div>
+                <div class="slider-group">
+                    <label>Height <span id="val-height">0.10</span></label>
+                    <input type="range" id="orbit-height" min="-0.4" max="0.4" step="0.01" value="0.10">
                 </div>
             </div>
         </div>
@@ -271,7 +317,7 @@
         }
     </script>
 
-    <!-- FRAGMENT SHADER: Saturated & Advanced -->
+    <!-- FRAGMENT SHADER: Preserved completely to maintain visual fidelity -->
     <script id="fragmentShader" type="x-shader/x-fragment">
         precision highp float;
 
@@ -289,11 +335,10 @@
         #define DISK_OUTER 14.0     
         #define DISK_HEIGHT 0.08    
         
-        // --- NEW GRADIENT: White -> Yellow -> Red ---
-        #define COLOR_HOT vec3(0.98, 0.98, 1.0)  // Bright White-Blue center
-        #define COLOR_MID vec3(1.0, 0.8, 0.2)    // Golden Yellow
-        #define COLOR_COOL vec3(0.6, 0.05, 0.02)  // Deep Red edge
-        #define COLOR_JET vec3(0.8, 0.9, 1.0)     // Jet color
+        #define COLOR_HOT vec3(0.98, 0.98, 1.0)  
+        #define COLOR_MID vec3(1.0, 0.8, 0.2)    
+        #define COLOR_COOL vec3(0.6, 0.05, 0.02)  
+        #define COLOR_JET vec3(0.8, 0.9, 1.0)     
 
         // Noise functions
         vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -323,73 +368,41 @@
             return 130.0 * dot(m, g);
         }
         
-        // Increased octaves for higher fidelity particles
         float fbm(vec2 p) {
             float f = 0.0;
             float w = 0.5;
             for (int i = 0; i < 5; i++) {
                 f += w * snoise(p);
-                p *= 2.1; // Slightly irregular scaling to break patterns
+                p *= 2.1;
                 w *= 0.5;
             }
             return f;
         }
 
         vec3 getBackground(vec3 dir) {
-            // Bright sharp stars, no nebula
             float n = fbm(dir.xy * 25.0) * fbm(dir.yz * 25.0);
-            float stars = pow(max(0.0, n), 28.0) * 500.0; // Brighter and sharper
+            float stars = pow(max(0.0, n), 28.0) * 500.0; 
             return vec3(stars);
         }
 
-        // --- RELATIVISTIC JET FUNCTION ---
-        // Updated for Logarithmic/Elongated Cone Shape
         vec3 getJet(vec3 p) {
-            // Distance from Y-axis
             float r = length(p.xz);
-            // Distance along Y-axis
             float h = abs(p.y);
-            
-            // Jet starts FURTHER away from hole (Requested: "origin of light little more far from center")
             float startDist = RS * 2.8; 
             if (h < startDist) return vec3(0.0);
-
-            // Calculate Distance from start point
             float d = h - startDist;
-            
-            // --- CONE SHAPE LOGIC ---
-            // "decrease more radius at closer like a cone with small flat not pointer"
-            // Base width reduced to 0.06 (was 0.15) for a tighter start
-            // Expansion mixes linear and log for a natural trumpet flare
             float coneWidth = 0.06 + d * 0.15 + log(1.0 + d * 2.0) * 0.6;
             
             if (r > coneWidth) return vec3(0.0);
 
-            // --- ANIMATION: RANDOM OUTWARD FLOW ---
-            // "random movement outwards not necessarily spiral or straight"
-            
-            // 1. Vertical Flow (INWARDS)
-            // Changed (-) to (+) to reverse direction towards the center
             float flow = h * 3.0 + uTime * 8.0; 
-            
-            // 2. Horizontal Turbulence (Randomness)
-            // We distort the sampling coordinate using noise based on time and position
             float angle = atan(p.z, p.x);
             float turbulence = snoise(vec2(angle * 3.0, uTime * 0.5 + h));
-            
-            // Combine for the texture lookup
             float noise = fbm(vec2(r * 5.0 + turbulence * 0.5, flow));
             
-            // Fade out as it goes very far 
             float fade = 1.0 / (1.0 + d * 1.5);
-            
-            // Smooth edges
             float edge = smoothstep(coneWidth, coneWidth * 0.3, r);
-            
-            // Soft start
             float startFade = smoothstep(startDist, startDist + 0.5, h);
-
-            // Density
             float intensity = noise * fade * edge * startFade * 0.15; 
             return COLOR_JET * intensity;
         }
@@ -406,30 +419,19 @@
             float speed = 6.0 / (r * 0.5 + 0.1); 
             float rotAngle = angle + uTime * speed * 0.2;
             
-            // --- CHAOTIC NOISE ---
-            // Removed radial time component (r - uTime) to stop "pulsing"
-            // Now strictly rotational drag
             vec2 noiseCoord = vec2(rotAngle * 6.0, r); 
-            
-            // Distort the coordinate for chaos
             noiseCoord += vec2(snoise(noiseCoord * 0.5), snoise(noiseCoord * 0.5 + 10.0)) * 0.5;
             
             float noise = fbm(noiseCoord);
-            
-            // High contrast cuts for "Dark Red" gaps
             noise = pow(max(0.0, noise), 1.6); 
             
-            // Add grain
             float grain = snoise(vec2(rotAngle * 60.0, r * 25.0));
             noise += grain * 0.25;
 
             float fade = smoothstep(DISK_INNER, DISK_INNER + 0.2, r) * (1.0 - smoothstep(DISK_OUTER - 2.0, DISK_OUTER, r));
             float verticalFade = 1.0 - smoothstep(0.0, thickness, h);
             
-            // Boost density
             float density = max(0.0, noise * fade * verticalFade * 2.2);
-            
-            // Temp gradient
             float temp = 1.0 - smoothstep(DISK_INNER, DISK_OUTER * 0.8, r);
             
             return vec3(density, temp, r);
@@ -459,7 +461,6 @@
             vec2 uv = (vUv - 0.5) * 2.0;
             uv.x *= uResolution.x / uResolution.y;
 
-            // Camera Calc
             float camDist = uZoom;
             vec3 ro = vec3(0.0, 0.0, camDist);
             
@@ -489,10 +490,8 @@
                 float r2 = dot(pos, pos);
                 float r = sqrt(r2);
 
-                // --- ELLIPTICAL DISTORTION CHECK ---
-                float r_ellip = length(pos * vec3(1.0, 1.15, 1.0)); // 15% squash
+                float r_ellip = length(pos * vec3(1.0, 1.15, 1.0)); 
                 if (r_ellip < RS) { hitHorizon = true; break; }
-                
                 if (r > 40.0) break;
 
                 stepSize = max(0.02, 0.05 * r); 
@@ -501,8 +500,7 @@
                 dir = normalize(dir);
                 pos += dir * stepSize;
 
-                // --- JET SAMPLING ---
-                if (abs(pos.y) > RS * 1.5 && length(pos.xz) < 3.0) { // Increased check bounds for wider jet
+                if (abs(pos.y) > RS * 1.5 && length(pos.xz) < 3.0) { 
                     vec3 jetCol = getJet(pos);
                     if (length(jetCol) > 0.0) {
                         accumColor += jetCol * (1.0 - accumDensity);
@@ -510,7 +508,6 @@
                     }
                 }
 
-                // --- DISK SAMPLING ---
                 if (abs(pos.y) < DISK_HEIGHT * 2.0) {
                     vec3 diskData = getDiskData(pos);
                     float density = diskData.x;
@@ -519,7 +516,6 @@
                         float temp = diskData.y;
                         float distR = diskData.z;
 
-                        // New Color Logic: White -> Yellow -> Red
                         vec3 gasColor = mix(COLOR_COOL, COLOR_MID, temp);
                         gasColor = mix(gasColor, COLOR_HOT, smoothstep(0.6, 1.0, temp));
 
@@ -541,12 +537,9 @@
                 accumColor += getBackground(dir) * (1.0 - accumDensity);
             }
 
-            // Bloom/Glow logic
             accumColor = vec3(1.0) - exp(-accumColor * 1.5);
-            // Saturation boost
             float gray = dot(accumColor, vec3(0.299, 0.587, 0.114));
             accumColor = mix(vec3(gray), accumColor, 1.4);
-            
             accumColor = pow(accumColor, vec3(1.0/2.2));
 
             gl_FragColor = vec4(accumColor, 1.0);
@@ -555,6 +548,7 @@
 
     <!-- JAVASCRIPT -->
     <script>
+        // Setup Scene
         const scene = new THREE.Scene();
         const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -578,15 +572,32 @@
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 
-        // --- INTERACTION LOGIC ---
+        // --- CAMERA MODES & LOGIC (Feature 1) ---
+        // Modes: 'manual', 'orbit', 'travel'
+        let currentMode = 'manual';
+        
+        // Orbit parameters
+        let orbitSettings = {
+            speed: 0.05,
+            radius: 20.0,
+            height: 0.10
+        };
+
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
-        let isTraveling = false;
         
+        // Ensure manual control temporarily overrides orbit or travel
+        const setManualMode = () => {
+            currentMode = 'manual';
+            updateMenuUI('btn-manual');
+            document.getElementById('orbit-controls-panel').classList.remove('visible');
+        };
+
         // Mouse/Touch Handlers
         const onDown = (x, y) => {
             isDragging = true;
             previousMousePosition = { x, y };
+            if(currentMode !== 'manual') setManualMode();
         };
         const onMove = (x, y) => {
             if (isDragging) {
@@ -599,22 +610,18 @@
         };
         const onUp = () => { isDragging = false; };
 
-        // Mouse Events
         document.addEventListener('mousedown', (e) => onDown(e.offsetX, e.offsetY));
         document.addEventListener('mousemove', (e) => onMove(e.offsetX, e.offsetY));
         document.addEventListener('mouseup', onUp);
-        
-        // Touch Events
         document.addEventListener('touchstart', (e) => onDown(e.touches[0].clientX, e.touches[0].clientY));
         document.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY));
         document.addEventListener('touchend', onUp);
 
         // Scroll Zoom
         document.addEventListener('wheel', (e) => {
-            if(!isTraveling) {
-                uniforms.uZoom.value += e.deltaY * 0.01;
-                uniforms.uZoom.value = Math.max(2.5, Math.min(50.0, uniforms.uZoom.value));
-            }
+            if(currentMode !== 'manual') setManualMode();
+            uniforms.uZoom.value += e.deltaY * 0.01;
+            uniforms.uZoom.value = Math.max(2.5, Math.min(50.0, uniforms.uZoom.value));
         });
 
         // --- BUTTON CONTROLS ---
@@ -623,10 +630,11 @@
 
         const bindBtn = (id, key) => {
             const btn = document.getElementById(id);
-            btn.addEventListener('mousedown', () => keys[key] = true);
+            const triggerManual = () => { keys[key] = true; if(currentMode !== 'manual') setManualMode(); };
+            btn.addEventListener('mousedown', triggerManual);
             btn.addEventListener('mouseup', () => keys[key] = false);
             btn.addEventListener('mouseleave', () => keys[key] = false);
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerManual(); });
             btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
         };
 
@@ -637,10 +645,11 @@
         bindBtn('btn-in', 'in');
         bindBtn('btn-out', 'out');
 
-        // --- MENU LOGIC ---
+        // --- UI & MENU LOGIC ---
         const menuToggle = document.getElementById('menu-toggle');
         const menuArrow = document.getElementById('menu-arrow');
         const glassMenu = document.getElementById('glass-menu');
+        const orbitPanel = document.getElementById('orbit-controls-panel');
 
         menuToggle.addEventListener('click', () => {
             const isOpen = glassMenu.classList.contains('open');
@@ -653,32 +662,66 @@
             }
         });
 
-        document.getElementById('btn-reset').addEventListener('click', () => {
-            isTraveling = false;
-            uniforms.uZoom.value = 12.0;
-            uniforms.uMouse.value.set(0.85, 0.08);
-            // Close menu on action
-            glassMenu.classList.remove('open');
-            menuArrow.textContent = 'keyboard_arrow_down';
+        // UI active state updater
+        function updateMenuUI(activeId) {
+            ['btn-manual', 'btn-orbit', 'btn-travel'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            document.getElementById(activeId).classList.add('active');
+        }
+
+        // Menu Actions
+        document.getElementById('btn-manual').addEventListener('click', () => {
+            currentMode = 'manual';
+            updateMenuUI('btn-manual');
+            orbitPanel.classList.remove('visible');
+        });
+
+        document.getElementById('btn-orbit').addEventListener('click', () => {
+            currentMode = 'orbit';
+            updateMenuUI('btn-orbit');
+            orbitPanel.classList.add('visible');
         });
 
         document.getElementById('btn-travel').addEventListener('click', () => {
-            isTraveling = !isTraveling; // Toggle
-            if(isTraveling) {
-                if(uniforms.uZoom.value > 20.0) uniforms.uZoom.value = 20.0;
-            }
+            currentMode = 'travel';
+            updateMenuUI('btn-travel');
+            orbitPanel.classList.remove('visible');
+            if(uniforms.uZoom.value > 20.0) uniforms.uZoom.value = 20.0;
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            currentMode = 'manual';
+            updateMenuUI('btn-manual');
+            orbitPanel.classList.remove('visible');
+            uniforms.uZoom.value = 12.0;
+            uniforms.uMouse.value.set(0.85, 0.08);
             glassMenu.classList.remove('open');
             menuArrow.textContent = 'keyboard_arrow_down';
         });
 
+        // Orbit Sliders Control
+        const bindSlider = (id, param, displayId) => {
+            const slider = document.getElementById(id);
+            const display = document.getElementById(displayId);
+            slider.addEventListener('input', (e) => {
+                orbitSettings[param] = parseFloat(e.target.value);
+                display.textContent = orbitSettings[param].toFixed(2);
+            });
+        };
+        bindSlider('orbit-speed', 'speed', 'val-speed');
+        bindSlider('orbit-radius', 'radius', 'val-radius');
+        bindSlider('orbit-height', 'height', 'val-height');
+
         // --- ANIMATION LOOP ---
         const clock = new THREE.Clock();
+        
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             uniforms.uTime.value += delta;
 
-            // Handle Button Movement
+            // Handle Manual Button Movement
             if (keys.left) uniforms.uMouse.value.x -= moveStep * 20 * delta;
             if (keys.right) uniforms.uMouse.value.x += moveStep * 20 * delta;
             if (keys.up) uniforms.uMouse.value.y = Math.min(0.49, uniforms.uMouse.value.y + moveStep * 20 * delta);
@@ -686,8 +729,20 @@
             if (keys.in) uniforms.uZoom.value = Math.max(2.5, uniforms.uZoom.value - 10.0 * delta);
             if (keys.out) uniforms.uZoom.value = Math.min(50.0, uniforms.uZoom.value + 10.0 * delta);
 
-            // Handle Travel Mode
-            if (isTraveling) {
+            // --- Feature 1: Orbit Camera Logic ---
+            if (currentMode === 'orbit') {
+                // Smoothly interpolate radius (zoom)
+                uniforms.uZoom.value += (orbitSettings.radius - uniforms.uZoom.value) * 1.5 * delta;
+                
+                // Smoothly interpolate height (y-axis)
+                uniforms.uMouse.value.y += (orbitSettings.height - uniforms.uMouse.value.y) * 1.5 * delta;
+                
+                // Continuously rotate (x-axis / azimuth)
+                uniforms.uMouse.value.x += orbitSettings.speed * delta;
+            } 
+            
+            // --- Legacy Travel Logic ---
+            else if (currentMode === 'travel') {
                 const dist = uniforms.uZoom.value;
                 const speed = 2.0 + (15.0 / (dist * dist + 0.1)); 
                 uniforms.uZoom.value -= speed * delta;
