@@ -610,15 +610,15 @@
         };
         const onUp = () => { isDragging = false; };
 
-        document.addEventListener('mousedown', (e) => onDown(e.offsetX, e.offsetY));
-        document.addEventListener('mousemove', (e) => onMove(e.offsetX, e.offsetY));
-        document.addEventListener('mouseup', onUp);
-        document.addEventListener('touchstart', (e) => onDown(e.touches[0].clientX, e.touches[0].clientY));
-        document.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY));
-        document.addEventListener('touchend', onUp);
+        renderer.domElement.addEventListener('mousedown', (e) => onDown(e.offsetX, e.offsetY));
+        renderer.domElement.addEventListener('mousemove', (e) => onMove(e.offsetX, e.offsetY));
+        renderer.domElement.addEventListener('mouseup', onUp);
+        renderer.domElement.addEventListener('touchstart', (e) => onDown(e.touches[0].clientX, e.touches[0].clientY));
+        renderer.domElement.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY));
+        renderer.domElement.addEventListener('touchend', onUp);
 
         // Scroll Zoom
-        document.addEventListener('wheel', (e) => {
+        renderer.domElement.addEventListener('wheel', (e) => {
             if(currentMode !== 'manual') setManualMode();
             uniforms.uZoom.value += e.deltaY * 0.01;
             uniforms.uZoom.value = Math.max(2.5, Math.min(50.0, uniforms.uZoom.value));
