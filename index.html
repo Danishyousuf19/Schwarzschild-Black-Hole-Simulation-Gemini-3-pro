@@ -123,6 +123,36 @@
         .slider-group label { font-size: 0.8rem; color: #ccc; display: flex; justify-content: space-between; }
         .slider-group input[type=range] { accent-color: var(--primary); width: 100%; cursor: pointer; }
         
+        /* Feature 2: Time Dilation Panel */
+        #time-dilation-panel {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            pointer-events: auto;
+            width: 250px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 50;
+        }
+        .time-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 4px;
+        }
+        .time-row:last-child { border-bottom: none; margin-bottom: 0; }
+        .time-label { color: #aaa; }
+        .time-value { font-family: 'Orbitron', monospace; font-weight: bold; color: var(--primary); }
+        .time-title { font-size: 1rem; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid var(--primary); padding-bottom: 5px; display: flex; align-items: center; gap: 8px;}
+
         /* On-Screen Controls */
         #controls-area {
             position: absolute;
@@ -236,6 +266,26 @@
             <h1>GARGANTUA</h1>
             <div class="subtitle">General Relativistic Raymarcher</div>
         </header>
+
+        <!-- Feature 2: Time Dilation Panel -->
+        <div id="time-dilation-panel">
+            <div class="time-title">
+                <span class="material-symbols-outlined" style="font-size:1.2rem;">schedule</span>
+                Relativistic Time
+            </div>
+            <div class="time-row">
+                <span class="time-label">Earth Time:</span>
+                <span class="time-value" id="earth-time">0s</span>
+            </div>
+            <div class="time-row">
+                <span class="time-label">Local Time:</span>
+                <span class="time-value" id="bh-time">0s</span>
+            </div>
+            <div class="time-row">
+                <span class="time-label">Dilation Factor:</span>
+                <span class="time-value" id="dilation-factor">x1.00</span>
+            </div>
+        </div>
 
         <!-- Menus and Controls -->
         <div id="menu-container">
@@ -713,6 +763,30 @@
         bindSlider('orbit-radius', 'radius', 'val-radius');
         bindSlider('orbit-height', 'height', 'val-height');
 
+        // --- FEATURE 2: Time Dilation State & Logic ---
+        let earthTimeSecs = 0;
+        let bhTimeSecs = 0;
+        const RS_MATH = 1.0; // Schwarzschild radius
+
+        function formatTime(seconds) {
+            if (!isFinite(seconds) || seconds > 1e12) return "Infinity";
+            let y = Math.floor(seconds / (3600*24*365));
+            let d = Math.floor((seconds % (3600*24*365)) / (3600*24));
+            let h = Math.floor((seconds % (3600*24)) / 3600);
+            let m = Math.floor((seconds % 3600) / 60);
+            let s = (seconds % 60).toFixed(1);
+            
+            if (y > 0) return `${y}y ${d}d ${h}h`;
+            if (d > 0) return `${d}d ${h}h ${m}m`;
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
+        }
+
+        const elEarthTime = document.getElementById('earth-time');
+        const elBhTime = document.getElementById('bh-time');
+        const elDilation = document.getElementById('dilation-factor');
+
         // --- ANIMATION LOOP ---
         const clock = new THREE.Clock();
         
@@ -720,6 +794,21 @@
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             uniforms.uTime.value += delta;
+
+            // --- Feature 2: Scientific Time Dilation Math ---
+            // t_observer = t_local / sqrt(1 - Rs/r)
+            const r = Math.max(RS_MATH + 0.0001, uniforms.uZoom.value); // Clamp near horizon
+            const dilationFactor = 1.0 / Math.sqrt(1.0 - RS_MATH / r);
+            
+            // Advance local camera time
+            bhTimeSecs += delta; 
+            // Calculate corresponding time passed on Earth
+            earthTimeSecs += delta * dilationFactor;
+
+            // Update UI 
+            elDilation.textContent = 'x' + (dilationFactor > 1000 ? dilationFactor.toExponential(2) : dilationFactor.toFixed(2));
+            elEarthTime.textContent = formatTime(earthTimeSecs);
+            elBhTime.textContent = formatTime(bhTimeSecs);
 
             // Handle Manual Button Movement
             if (keys.left) uniforms.uMouse.value.x -= moveStep * 20 * delta;
