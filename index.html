@@ -123,6 +123,26 @@
         .slider-group label { font-size: 0.8rem; color: #ccc; display: flex; justify-content: space-between; }
         .slider-group input[type=range] { accent-color: var(--primary); width: 100%; cursor: pointer; }
         
+        /* Feature 3: Journey Panel */
+        #journey-panel {
+            display: none;
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            pointer-events: auto;
+            width: 250px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 50;
+        }
+        #journey-panel.visible { display: block; }
+
         /* Feature 2: Time Dilation Panel */
         #time-dilation-panel {
             position: absolute;
@@ -287,6 +307,24 @@
             </div>
         </div>
 
+        <!-- Feature 3: Journey Panel -->
+        <div id="journey-panel">
+            <div class="time-title">
+                <span class="material-symbols-outlined" style="font-size:1.2rem;">flight_takeoff</span>
+                Journey from Earth
+            </div>
+            <div class="time-row"><span class="time-label">Location:</span><span class="time-value" id="j-loc">Earth</span></div>
+            <div class="time-row"><span class="time-label">Distance:</span><span class="time-value" id="j-dist">26,000 ly</span></div>
+            <div class="time-row"><span class="time-label">Speed:</span><span class="time-value" id="j-speed">0.0001 c</span></div>
+            <div class="time-row"><span class="time-label">Ship Time:</span><span class="time-value" id="j-ship-time">0y</span></div>
+            <div class="time-row"><span class="time-label">ETA:</span><span class="time-value" id="j-eta">Infinity</span></div>
+            
+            <div class="slider-group" style="margin-top: 15px;">
+                <label>Velocity Control</label>
+                <input type="range" id="journey-speed-slider" min="0" max="6" step="0.01" value="0">
+            </div>
+        </div>
+
         <!-- Menus and Controls -->
         <div id="menu-container">
             <!-- Main Dropdown -->
@@ -309,6 +347,12 @@
                 </div>
                 <div class="menu-item" id="btn-travel">
                     <span class="material-symbols-outlined">rocket_launch</span> Travel (Photon Mode)
+                </div>
+                <div class="menu-item" id="btn-journey">
+                    <span class="material-symbols-outlined">flight_takeoff</span> Journey from Earth
+                </div>
+                <div class="menu-item" id="btn-toggle-time" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">
+                    <span class="material-symbols-outlined" id="toggle-time-icon">toggle_on</span> <span id="toggle-time-text">Disable Time Dilation</span>
                 </div>
                 <div class="menu-item" id="btn-reset" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">
                     <span class="material-symbols-outlined">restart_alt</span> Reset View
@@ -700,6 +744,16 @@
         const menuArrow = document.getElementById('menu-arrow');
         const glassMenu = document.getElementById('glass-menu');
         const orbitPanel = document.getElementById('orbit-controls-panel');
+        const journeyPanel = document.getElementById('journey-panel');
+
+        // Toggle Time Dilation Logic
+        let showTimeDilation = true;
+        document.getElementById('btn-toggle-time').addEventListener('click', () => {
+            showTimeDilation = !showTimeDilation;
+            document.getElementById('time-dilation-panel').style.display = showTimeDilation ? 'block' : 'none';
+            document.getElementById('toggle-time-icon').textContent = showTimeDilation ? 'toggle_on' : 'toggle_off';
+            document.getElementById('toggle-time-text').textContent = showTimeDilation ? 'Disable Time Dilation' : 'Enable Time Dilation';
+        });
 
         menuToggle.addEventListener('click', () => {
             const isOpen = glassMenu.classList.contains('open');
@@ -714,10 +768,10 @@
 
         // UI active state updater
         function updateMenuUI(activeId) {
-            ['btn-manual', 'btn-orbit', 'btn-travel'].forEach(id => {
+            ['btn-manual', 'btn-orbit', 'btn-travel', 'btn-journey'].forEach(id => {
                 document.getElementById(id).classList.remove('active');
             });
-            document.getElementById(activeId).classList.add('active');
+            if(activeId) document.getElementById(activeId).classList.add('active');
         }
 
         // Menu Actions
@@ -725,25 +779,40 @@
             currentMode = 'manual';
             updateMenuUI('btn-manual');
             orbitPanel.classList.remove('visible');
+            journeyPanel.classList.remove('visible');
         });
 
         document.getElementById('btn-orbit').addEventListener('click', () => {
             currentMode = 'orbit';
             updateMenuUI('btn-orbit');
             orbitPanel.classList.add('visible');
+            journeyPanel.classList.remove('visible');
         });
 
         document.getElementById('btn-travel').addEventListener('click', () => {
             currentMode = 'travel';
             updateMenuUI('btn-travel');
             orbitPanel.classList.remove('visible');
+            journeyPanel.classList.remove('visible');
             if(uniforms.uZoom.value > 20.0) uniforms.uZoom.value = 20.0;
+        });
+
+        document.getElementById('btn-journey').addEventListener('click', () => {
+            currentMode = 'journey';
+            updateMenuUI('btn-journey');
+            orbitPanel.classList.remove('visible');
+            journeyPanel.classList.add('visible');
+            journeySettings.distanceLy = 26000;
+            journeySettings.traveledLy = 0;
+            journeySettings.shipTimeYrs = 0;
+            uniforms.uZoom.value = 50.0; // Zoom out to simulate distance
         });
 
         document.getElementById('btn-reset').addEventListener('click', () => {
             currentMode = 'manual';
             updateMenuUI('btn-manual');
             orbitPanel.classList.remove('visible');
+            journeyPanel.classList.remove('visible');
             uniforms.uZoom.value = 12.0;
             uniforms.uMouse.value.set(0.85, 0.08);
             glassMenu.classList.remove('open');
@@ -787,6 +856,32 @@
         const elBhTime = document.getElementById('bh-time');
         const elDilation = document.getElementById('dilation-factor');
 
+        // --- FEATURE 3: Journey State & Logic ---
+        let journeySettings = {
+            distanceLy: 26000, traveledLy: 0, speedC: 0.0001, shipTimeYrs: 0
+        };
+        const jLoc = document.getElementById('j-loc');
+        const jDist = document.getElementById('j-dist');
+        const jSpeed = document.getElementById('j-speed');
+        const jShipTime = document.getElementById('j-ship-time');
+        const jEta = document.getElementById('j-eta');
+
+        document.getElementById('journey-speed-slider').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if(val <= 1) journeySettings.speedC = 0.0001 + (val)*(0.01 - 0.0001);
+            else if(val <= 2) journeySettings.speedC = 0.01 + (val-1)*(0.1 - 0.01);
+            else if(val <= 3) journeySettings.speedC = 0.1 + (val-2)*(0.5 - 0.1);
+            else if(val <= 4) journeySettings.speedC = 0.5 + (val-3)*(0.9 - 0.5);
+            else if(val <= 5) journeySettings.speedC = 0.9 + (val-4)*(0.99 - 0.9);
+            else journeySettings.speedC = 0.99 + (val-5)*(0.999999 - 0.99);
+        });
+
+        function formatYrs(y) {
+            if (y < 1) return (y * 365).toFixed(1) + " days";
+            if (y > 1000) return (y/1000).toFixed(1) + "k yrs";
+            return y.toFixed(2) + " yrs";
+        }
+
         // --- ANIMATION LOOP ---
         const clock = new THREE.Clock();
         
@@ -796,19 +891,18 @@
             uniforms.uTime.value += delta;
 
             // --- Feature 2: Scientific Time Dilation Math ---
-            // t_observer = t_local / sqrt(1 - Rs/r)
-            const r = Math.max(RS_MATH + 0.0001, uniforms.uZoom.value); // Clamp near horizon
-            const dilationFactor = 1.0 / Math.sqrt(1.0 - RS_MATH / r);
-            
-            // Advance local camera time
-            bhTimeSecs += delta; 
-            // Calculate corresponding time passed on Earth
-            earthTimeSecs += delta * dilationFactor;
+            if (showTimeDilation) {
+                // t_observer = t_local / sqrt(1 - Rs/r)
+                const r = Math.max(RS_MATH + 0.0001, uniforms.uZoom.value); // Clamp near horizon
+                const dilationFactor = 1.0 / Math.sqrt(1.0 - RS_MATH / r);
+                
+                bhTimeSecs += delta; 
+                earthTimeSecs += delta * dilationFactor;
 
-            // Update UI 
-            elDilation.textContent = 'x' + (dilationFactor > 1000 ? dilationFactor.toExponential(2) : dilationFactor.toFixed(2));
-            elEarthTime.textContent = formatTime(earthTimeSecs);
-            elBhTime.textContent = formatTime(bhTimeSecs);
+                elDilation.textContent = 'x' + (dilationFactor > 1000 ? dilationFactor.toExponential(2) : dilationFactor.toFixed(2));
+                elEarthTime.textContent = formatTime(earthTimeSecs);
+                elBhTime.textContent = formatTime(bhTimeSecs);
+            }
 
             // Handle Manual Button Movement
             if (keys.left) uniforms.uMouse.value.x -= moveStep * 20 * delta;
@@ -830,6 +924,38 @@
                 uniforms.uMouse.value.x += orbitSettings.speed * delta;
             } 
             
+            // --- Feature 3: Journey Logic ---
+            else if (currentMode === 'journey') {
+                const v = journeySettings.speedC;
+                const gamma = 1.0 / Math.sqrt(1.0 - v * v);
+                
+                // Simulate time faster to make the 26,000 ly journey interactive
+                const dEarthYrs = delta * 2000 * v; // Faster progression based on speed
+                const dLy = v * dEarthYrs;
+                
+                if (journeySettings.distanceLy > 0.1) {
+                    journeySettings.distanceLy -= dLy;
+                    journeySettings.traveledLy += dLy;
+                    journeySettings.shipTimeYrs += dEarthYrs / gamma;
+                }
+
+                if (journeySettings.distanceLy < 0) journeySettings.distanceLy = 0;
+
+                // Visual distance mapping (50 = far space, 5 = near horizon)
+                if (journeySettings.distanceLy > 1) {
+                    uniforms.uZoom.value = 5.0 + (journeySettings.distanceLy / 26000.0) * 45.0;
+                }
+                
+                // Update UI text
+                jLoc.textContent = journeySettings.distanceLy > 100 ? 'Deep Space' : (journeySettings.distanceLy > 1 ? 'Approaching' : 'Arrived');
+                jDist.textContent = journeySettings.distanceLy > 1000 ? (journeySettings.distanceLy/1000).toFixed(1) + 'k ly' : journeySettings.distanceLy.toFixed(2) + ' ly';
+                jSpeed.textContent = v.toFixed(6) + ' c';
+                jShipTime.textContent = formatYrs(journeySettings.shipTimeYrs);
+                
+                const etaYrs = (journeySettings.distanceLy / v) / gamma;
+                jEta.textContent = formatYrs(etaYrs);
+            }
+
             // --- Legacy Travel Logic ---
             else if (currentMode === 'travel') {
                 const dist = uniforms.uZoom.value;
