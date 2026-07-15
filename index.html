@@ -264,9 +264,58 @@
             #zoom-controls { bottom: 20px; left: 20px; transform: scale(0.8); transform-origin: bottom left; }
             h1 { font-size: 1.5rem; }
         }
+
+        /* Feature 4 & Init: Start Overlay */
+        #start-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: opacity 1s;
+        }
+        .start-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            letter-spacing: 5px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 157, 0, 0.6);
+            text-align: center;
+        }
+        #btn-start-sim {
+            background: rgba(255, 157, 0, 0.1);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 15px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            border-radius: 8px;
+        }
+        #btn-start-sim:hover {
+            background: var(--primary);
+            color: black;
+            box-shadow: 0 0 25px var(--primary);
+        }
     </style>
 </head>
 <body>
+
+    <!-- Start Overlay -->
+    <div id="start-overlay">
+        <div class="start-title">SYSTEM STANDBY</div>
+        <button id="btn-start-sim">Initialize Gravitational Engine</button>
+    </div>
 
     <!-- Mobile Warning Modal -->
     <div id="mobile-modal">
@@ -341,6 +390,9 @@
                 <!-- Mode Toggles -->
                 <div class="menu-item active" id="btn-manual">
                     <span class="material-symbols-outlined">pan_tool</span> Manual Mode
+                </div>
+                <div class="menu-item" id="btn-solar">
+                    <span class="material-symbols-outlined">public</span> View Solar System
                 </div>
                 <div class="menu-item" id="btn-orbit">
                     <span class="material-symbols-outlined">360</span> Orbit (Cinematic)
@@ -666,6 +718,59 @@
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 
+        // --- FEATURE 4: Mini Solar System Setup ---
+        const solarScene = new THREE.Scene();
+        const solarCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        solarCamera.position.set(0, 40, 80);
+        solarCamera.lookAt(0, 0, 0);
+
+        const ambientLight = new THREE.AmbientLight(0x222222);
+        solarScene.add(ambientLight);
+        const sunLight = new THREE.PointLight(0xffffff, 2, 300);
+        solarScene.add(sunLight);
+
+        const planets = [];
+        const planetData = [
+            { name: 'Sun', r: 4.0, d: 0, c: 0xffcc00, v: 0 },
+            { name: 'Mercury', r: 0.4, d: 7, c: 0xaaaaaa, v: 2.0 },
+            { name: 'Venus', r: 0.9, d: 11, c: 0xffaa00, v: 1.5 },
+            { name: 'Earth', r: 1.0, d: 16, c: 0x0055ff, v: 1.0 },
+            { name: 'Mars', r: 0.6, d: 21, c: 0xff3300, v: 0.8 },
+            { name: 'Jupiter', r: 2.5, d: 32, c: 0xffaa55, v: 0.4 },
+            { name: 'Saturn', r: 2.1, d: 43, c: 0xeeddcc, v: 0.3 },
+            { name: 'Uranus', r: 1.4, d: 53, c: 0x00aaff, v: 0.2 },
+            { name: 'Neptune', r: 1.3, d: 62, c: 0x0055aa, v: 0.1 }
+        ];
+
+        planetData.forEach(p => {
+            const geo = new THREE.SphereGeometry(p.r, 32, 32);
+            const mat = p.name === 'Sun' ? new THREE.MeshBasicMaterial({ color: p.c }) : new THREE.MeshPhongMaterial({ color: p.c });
+            const pMesh = new THREE.Mesh(geo, mat);
+            
+            if (p.d > 0) {
+                // Orbit rings
+                const orbitGeo = new THREE.RingGeometry(p.d - 0.05, p.d + 0.05, 64);
+                const orbitMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, side: THREE.DoubleSide });
+                const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+                orbit.rotation.x = Math.PI / 2;
+                solarScene.add(orbit);
+            }
+            
+            solarScene.add(pMesh);
+            planets.push({ mesh: pMesh, data: p, angle: Math.random() * Math.PI * 2 });
+        });
+
+        // --- SYSTEM ENGINE INITIALIZATION ---
+        let isSimulationRunning = false;
+        document.getElementById('btn-start-sim').addEventListener('click', () => {
+            const overlay = document.getElementById('start-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 1000);
+            
+            isSimulationRunning = true;
+            clock.getDelta(); // Clear time delta so it doesn't jump
+        });
+
         // --- CAMERA MODES & LOGIC (Feature 1) ---
         // Modes: 'manual', 'orbit', 'travel'
         let currentMode = 'manual';
@@ -768,8 +873,9 @@
 
         // UI active state updater
         function updateMenuUI(activeId) {
-            ['btn-manual', 'btn-orbit', 'btn-travel', 'btn-journey'].forEach(id => {
-                document.getElementById(id).classList.remove('active');
+            ['btn-manual', 'btn-orbit', 'btn-travel', 'btn-journey', 'btn-solar'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.remove('active');
             });
             if(activeId) document.getElementById(activeId).classList.add('active');
         }
@@ -780,6 +886,15 @@
             updateMenuUI('btn-manual');
             orbitPanel.classList.remove('visible');
             journeyPanel.classList.remove('visible');
+        });
+
+        document.getElementById('btn-solar').addEventListener('click', () => {
+            currentMode = 'solar_system';
+            updateMenuUI('btn-solar');
+            orbitPanel.classList.remove('visible');
+            journeyPanel.classList.remove('visible');
+            glassMenu.classList.remove('open');
+            menuArrow.textContent = 'keyboard_arrow_down';
         });
 
         document.getElementById('btn-orbit').addEventListener('click', () => {
@@ -887,7 +1002,38 @@
         
         function animate() {
             requestAnimationFrame(animate);
+            if (!isSimulationRunning) return; // Pause execution until started
+
             const delta = clock.getDelta();
+
+            // --- Feature 4: Solar System Render Mode ---
+            if (currentMode === 'solar_system') {
+                planets.forEach(p => {
+                    if (p.data.d > 0) {
+                        p.angle += p.data.v * delta * 0.5;
+                        p.mesh.position.x = Math.cos(p.angle) * p.data.d;
+                        p.mesh.position.z = Math.sin(p.angle) * p.data.d;
+                    }
+                });
+                
+                // Allow mouse to rotate Solar System camera
+                solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * 80;
+                solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * 80;
+                solarCamera.position.y = 40 + (uniforms.uMouse.value.y * 100);
+                solarCamera.lookAt(0, 0, 0);
+
+                renderer.render(solarScene, solarCamera);
+                
+                // Handle controls for solar system
+                if (keys.left) uniforms.uMouse.value.x -= moveStep * 10 * delta;
+                if (keys.right) uniforms.uMouse.value.x += moveStep * 10 * delta;
+                if (keys.up) uniforms.uMouse.value.y = Math.min(0.8, uniforms.uMouse.value.y + moveStep * 10 * delta);
+                if (keys.down) uniforms.uMouse.value.y = Math.max(-0.2, uniforms.uMouse.value.y - moveStep * 10 * delta);
+                
+                return; // Skip black hole processing
+            }
+
+            // --- Raymarcher Execution ---
             uniforms.uTime.value += delta;
 
             // --- Feature 2: Scientific Time Dilation Math ---
@@ -974,6 +1120,10 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             uniforms.uResolution.value.x = window.innerWidth;
             uniforms.uResolution.value.y = window.innerHeight;
+            
+            // Feature 4 Camera Update
+            solarCamera.aspect = window.innerWidth / window.innerHeight;
+            solarCamera.updateProjectionMatrix();
         });
 
         animate();
