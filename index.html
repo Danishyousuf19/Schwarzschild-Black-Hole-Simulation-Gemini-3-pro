@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Real-time 3D simulation of a Schwarzschild Black Hole using WebGL raymarching. Features gravitational lensing, accretion disk physics, and relativistic doppler effects.">
-    <title>Gargantua: Realistic Black Hole Simulation</title>
+    <title>Sagittarius A*: Realistic Black Hole Simulation</title>
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -75,7 +75,7 @@
         #menu-toggle:hover { background: rgba(255, 255, 255, 0.1); }
         
         #glass-menu {
-            display: none; /* Hidden by default */
+            display: none;
             background: var(--glass);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -104,62 +104,50 @@
         .menu-item:hover, .menu-item.active { background: rgba(255, 255, 255, 0.15); border-left: 3px solid var(--primary); }
         .menu-item span { font-size: 20px; }
 
-        /* Feature 1: Orbit Control Panel */
-        #orbit-controls-panel {
-            display: none; /* Hidden unless in Orbit mode */
+        /* Panels Shared Settings */
+        .side-panel {
             background: var(--glass);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 15px;
+            color: white;
+            pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 50;
+        }
+
+        /* Orbit Control Panel */
+        #orbit-controls-panel {
+            display: none;
             flex-direction: column;
             gap: 10px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             width: 200px;
         }
         #orbit-controls-panel.visible { display: flex; }
-        .slider-group { display: flex; flex-direction: column; gap: 5px; }
+        .slider-group { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
         .slider-group label { font-size: 0.8rem; color: #ccc; display: flex; justify-content: space-between; }
         .slider-group input[type=range] { accent-color: var(--primary); width: 100%; cursor: pointer; }
         
-        /* Feature 3: Journey Panel */
+        /* Time Dilation Panel */
+        #time-dilation-panel {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            width: 250px;
+        }
+        
+        /* Journey Panel */
         #journey-panel {
             display: none;
             position: absolute;
             top: 120px;
             right: 20px;
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            pointer-events: auto;
             width: 250px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 50;
         }
         #journey-panel.visible { display: block; }
 
-        /* Feature 2: Time Dilation Panel */
-        #time-dilation-panel {
-            position: absolute;
-            top: 120px;
-            left: 20px;
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            pointer-events: auto;
-            width: 250px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 50;
-        }
         .time-row {
             display: flex;
             justify-content: space-between;
@@ -172,6 +160,62 @@
         .time-label { color: #aaa; }
         .time-value { font-family: 'Orbitron', monospace; font-weight: bold; color: var(--primary); }
         .time-title { font-size: 1rem; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid var(--primary); padding-bottom: 5px; display: flex; align-items: center; gap: 8px;}
+
+        /* Information Panel */
+        #info-panel {
+            position: absolute;
+            top: 280px;
+            left: 20px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .info-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid rgba(255,157,0,0.3); padding-bottom: 5px; }
+        .info-status { font-weight: bold; color: #fff; font-size: 0.9rem; margin-top: 5px; }
+        .info-desc { font-size: 0.8rem; color: #ccc; line-height: 1.4; margin-top: 5px;}
+        
+        .fact-box {
+            background: rgba(255, 157, 0, 0.1);
+            border-left: 3px solid var(--primary);
+            padding: 10px;
+            font-size: 0.75rem;
+            color: #ddd;
+            font-style: italic;
+        }
+
+        /* 3D Floating Labels */
+        #labels-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 40;
+            overflow: hidden;
+        }
+        .floating-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.75rem;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0px 0px 4px #000, 0px 0px 8px var(--primary);
+            pointer-events: none;
+            opacity: 0.8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 0.2s;
+        }
+        .floating-label::after {
+            content: '';
+            width: 4px; height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin-top: 4px;
+            box-shadow: 0 0 10px var(--primary);
+        }
 
         /* On-Screen Controls */
         #controls-area {
@@ -258,14 +302,7 @@
             cursor: pointer;
         }
 
-        @media (max-width: 768px) {
-            #mobile-modal { display: flex; }
-            #controls-area { bottom: 20px; right: 20px; transform: scale(0.8); transform-origin: bottom right; }
-            #zoom-controls { bottom: 20px; left: 20px; transform: scale(0.8); transform-origin: bottom left; }
-            h1 { font-size: 1.5rem; }
-        }
-
-        /* Feature 4 & Init: Start Overlay */
+        /* Start Overlay */
         #start-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -307,6 +344,13 @@
             color: black;
             box-shadow: 0 0 25px var(--primary);
         }
+
+        @media (max-width: 768px) {
+            #mobile-modal { display: flex; }
+            #controls-area { bottom: 20px; right: 20px; transform: scale(0.8); transform-origin: bottom right; }
+            #zoom-controls { bottom: 20px; left: 20px; transform: scale(0.8); transform-origin: bottom left; }
+            h1 { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -332,12 +376,39 @@
         
         <!-- Header -->
         <header>
-            <h1>GARGANTUA</h1>
-            <div class="subtitle">General Relativistic Raymarcher</div>
+            <h1>SAGITTARIUS A*</h1>
+            <div class="subtitle">Supermassive Black Hole Observation</div>
         </header>
 
+        <!-- 3D Floating Labels -->
+        <div id="labels-container">
+            <div class="floating-label" id="lbl-singularity">Singularity</div>
+            <div class="floating-label" id="lbl-event-horizon">Event Horizon</div>
+            <div class="floating-label" id="lbl-photon-sphere">Photon Sphere</div>
+            <div class="floating-label" id="lbl-accretion">Accretion Disk</div>
+        </div>
+
+        <!-- Information Panel -->
+        <div id="info-panel" class="side-panel">
+            <div>
+                <div class="info-title">Observation Status</div>
+                <div class="info-status" id="info-distance-status">Analyzing Location...</div>
+                <div class="info-desc" id="info-distance-desc">...</div>
+            </div>
+            <div>
+                <div class="info-title" id="info-focus-title">Target: Sagittarius A*</div>
+                <div class="info-desc" id="info-focus-desc">
+                    Located at the center of the Milky Way Galaxy, about 26,000 light-years from Earth. Mass is approximately 4.3 million Suns.
+                </div>
+            </div>
+            <div class="fact-box">
+                <strong>Did You Know?</strong><br>
+                <span id="random-fact">Light itself bends around a black hole.</span>
+            </div>
+        </div>
+
         <!-- Feature 2: Time Dilation Panel -->
-        <div id="time-dilation-panel">
+        <div id="time-dilation-panel" class="side-panel">
             <div class="time-title">
                 <span class="material-symbols-outlined" style="font-size:1.2rem;">schedule</span>
                 Relativistic Time
@@ -357,7 +428,7 @@
         </div>
 
         <!-- Feature 3: Journey Panel -->
-        <div id="journey-panel">
+        <div id="journey-panel" class="side-panel">
             <div class="time-title">
                 <span class="material-symbols-outlined" style="font-size:1.2rem;">flight_takeoff</span>
                 Journey from Earth
@@ -368,7 +439,7 @@
             <div class="time-row"><span class="time-label">Ship Time:</span><span class="time-value" id="j-ship-time">0y</span></div>
             <div class="time-row"><span class="time-label">ETA:</span><span class="time-value" id="j-eta">Infinity</span></div>
             
-            <div class="slider-group" style="margin-top: 15px;">
+            <div class="slider-group">
                 <label>Velocity Control (Warp Drive)</label>
                 <input type="range" id="journey-speed-slider" min="0" max="7" step="0.01" value="0">
             </div>
@@ -376,7 +447,6 @@
 
         <!-- Menus and Controls -->
         <div id="menu-container">
-            <!-- Main Dropdown -->
             <div id="menu-toggle">
                 <span class="material-symbols-outlined">menu</span>
                 <span>Menu</span>
@@ -387,7 +457,6 @@
                 <div class="menu-item" style="border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; cursor: default;">
                     <strong>Camera Modes</strong>
                 </div>
-                <!-- Mode Toggles -->
                 <div class="menu-item active" id="btn-manual">
                     <span class="material-symbols-outlined">pan_tool</span> Manual Mode
                 </div>
@@ -411,8 +480,8 @@
                 </div>
             </div>
 
-            <!-- Orbit Control Panel (Feature 1) -->
-            <div id="orbit-controls-panel">
+            <!-- Orbit Control Panel -->
+            <div id="orbit-controls-panel" class="side-panel">
                 <div style="font-size: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 5px;">
                     <strong>Orbit Settings</strong>
                 </div>
@@ -447,11 +516,11 @@
 
         <!-- Footer -->
         <footer>
-            Project by <a href="https://github.com/Danishyousuf19" target="_blank">Danish Yousuf</a> | Schwarzschild Metric Integration | Built with Gemini, WebGL & Three.js 
+            Project by <a href="https://github.com/Danishyousuf19" target="_blank">Danish Yousuf</a> | Schwarzschild Metric Integration | Built with WebGL & Three.js 
         </footer>
     </div>
     
-    <!-- Three.js from CDN -->
+    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <!-- VERTEX SHADER -->
@@ -463,7 +532,7 @@
         }
     </script>
 
-    <!-- FRAGMENT SHADER: Preserved completely to maintain visual fidelity -->
+    <!-- FRAGMENT SHADER -->
     <script id="fragmentShader" type="x-shader/x-fragment">
         precision highp float;
 
@@ -694,7 +763,7 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // Setup Scene
+        // --- Setup Main Scene ---
         const scene = new THREE.Scene();
         const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -718,7 +787,7 @@
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 
-        // --- FEATURE 4: Mini Solar System Setup ---
+        // --- Feature 4: Mini Solar System Setup ---
         const solarScene = new THREE.Scene();
         const solarCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         solarCamera.position.set(0, 40, 80);
@@ -748,57 +817,47 @@
             const pMesh = new THREE.Mesh(geo, mat);
             
             if (p.d > 0) {
-                // Orbit rings
                 const orbitGeo = new THREE.RingGeometry(p.d - 0.05, p.d + 0.05, 64);
                 const orbitMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, side: THREE.DoubleSide });
                 const orbit = new THREE.Mesh(orbitGeo, orbitMat);
                 orbit.rotation.x = Math.PI / 2;
                 solarScene.add(orbit);
             }
-            
             solarScene.add(pMesh);
             planets.push({ mesh: pMesh, data: p, angle: Math.random() * Math.PI * 2 });
         });
 
-        // --- SYSTEM ENGINE INITIALIZATION ---
+        // --- System Engine Init ---
         let isSimulationRunning = false;
+        const clock = new THREE.Clock();
+
         document.getElementById('btn-start-sim').addEventListener('click', () => {
             const overlay = document.getElementById('start-overlay');
             overlay.style.opacity = '0';
             setTimeout(() => overlay.style.display = 'none', 1000);
             
             isSimulationRunning = true;
-            clock.getDelta(); // Clear time delta so it doesn't jump
+            clock.getDelta(); // Clear time delta
         });
 
-        // --- CAMERA MODES & LOGIC (Feature 1) ---
-        // Modes: 'manual', 'orbit', 'travel'
+        // --- Core Interactions (Mouse/Touch) ---
         let currentMode = 'manual';
-        
-        // Orbit parameters
-        let orbitSettings = {
-            speed: 0.05,
-            radius: 20.0,
-            height: 0.10
-        };
-
+        let orbitSettings = { speed: 0.05, radius: 20.0, height: 0.10 };
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
         
-        // Ensure manual control temporarily overrides orbit or travel
         const setManualMode = () => {
             currentMode = 'manual';
             updateMenuUI('btn-manual');
             document.getElementById('orbit-controls-panel').classList.remove('visible');
         };
 
-        // Mouse/Touch Handlers
         const onDown = (x, y) => {
             isDragging = true;
             previousMousePosition = { x, y };
-            // Allow drag in Solar System and Journey modes without resetting
             if(currentMode === 'orbit' || currentMode === 'travel') setManualMode(); 
         };
+        
         const onMove = (x, y) => {
             if (isDragging) {
                 const deltaMove = { x: x - previousMousePosition.x, y: y - previousMousePosition.y };
@@ -817,14 +876,13 @@
         renderer.domElement.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY));
         renderer.domElement.addEventListener('touchend', onUp);
 
-        // Scroll Zoom
         renderer.domElement.addEventListener('wheel', (e) => {
             if(currentMode === 'orbit' || currentMode === 'travel') setManualMode();
             uniforms.uZoom.value += e.deltaY * 0.01;
             uniforms.uZoom.value = Math.max(2.5, Math.min(50.0, uniforms.uZoom.value));
         });
 
-        // --- BUTTON CONTROLS ---
+        // --- Button Controls ---
         const moveStep = 0.05;
         let keys = { up: false, down: false, left: false, right: false, in: false, out: false };
 
@@ -837,22 +895,14 @@
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerManual(); });
             btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
         };
+        bindBtn('btn-up', 'up'); bindBtn('btn-down', 'down'); bindBtn('btn-left', 'left'); bindBtn('btn-right', 'right'); bindBtn('btn-in', 'in'); bindBtn('btn-out', 'out');
 
-        bindBtn('btn-up', 'up');
-        bindBtn('btn-down', 'down');
-        bindBtn('btn-left', 'left');
-        bindBtn('btn-right', 'right');
-        bindBtn('btn-in', 'in');
-        bindBtn('btn-out', 'out');
-
-        // --- UI & MENU LOGIC ---
+        // --- UI & Menu Management ---
         const menuToggle = document.getElementById('menu-toggle');
-        const menuArrow = document.getElementById('menu-arrow');
         const glassMenu = document.getElementById('glass-menu');
         const orbitPanel = document.getElementById('orbit-controls-panel');
         const journeyPanel = document.getElementById('journey-panel');
 
-        // Toggle Time Dilation Logic
         let showTimeDilation = true;
         document.getElementById('btn-toggle-time').addEventListener('click', () => {
             showTimeDilation = !showTimeDilation;
@@ -863,16 +913,10 @@
 
         menuToggle.addEventListener('click', () => {
             const isOpen = glassMenu.classList.contains('open');
-            if (isOpen) {
-                glassMenu.classList.remove('open');
-                menuArrow.textContent = 'keyboard_arrow_down';
-            } else {
-                glassMenu.classList.add('open');
-                menuArrow.textContent = 'keyboard_arrow_up';
-            }
+            glassMenu.classList.toggle('open');
+            document.getElementById('menu-arrow').textContent = isOpen ? 'keyboard_arrow_down' : 'keyboard_arrow_up';
         });
 
-        // UI active state updater
         function updateMenuUI(activeId) {
             ['btn-manual', 'btn-orbit', 'btn-travel', 'btn-journey', 'btn-solar'].forEach(id => {
                 const el = document.getElementById(id);
@@ -881,115 +925,72 @@
             if(activeId) document.getElementById(activeId).classList.add('active');
         }
 
-        // Menu Actions
         document.getElementById('btn-manual').addEventListener('click', () => {
-            currentMode = 'manual';
-            updateMenuUI('btn-manual');
-            orbitPanel.classList.remove('visible');
-            journeyPanel.classList.remove('visible');
+            currentMode = 'manual'; updateMenuUI('btn-manual');
+            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
         });
-
         document.getElementById('btn-solar').addEventListener('click', () => {
-            currentMode = 'solar_system';
-            updateMenuUI('btn-solar');
-            orbitPanel.classList.remove('visible');
-            journeyPanel.classList.remove('visible');
-            glassMenu.classList.remove('open');
-            menuArrow.textContent = 'keyboard_arrow_down';
+            currentMode = 'solar_system'; updateMenuUI('btn-solar');
+            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
+            glassMenu.classList.remove('open'); document.getElementById('menu-arrow').textContent = 'keyboard_arrow_down';
         });
-
         document.getElementById('btn-orbit').addEventListener('click', () => {
-            currentMode = 'orbit';
-            updateMenuUI('btn-orbit');
-            orbitPanel.classList.add('visible');
-            journeyPanel.classList.remove('visible');
+            currentMode = 'orbit'; updateMenuUI('btn-orbit');
+            orbitPanel.classList.add('visible'); journeyPanel.classList.remove('visible');
         });
-
         document.getElementById('btn-travel').addEventListener('click', () => {
-            currentMode = 'travel';
-            updateMenuUI('btn-travel');
-            orbitPanel.classList.remove('visible');
-            journeyPanel.classList.remove('visible');
+            currentMode = 'travel'; updateMenuUI('btn-travel');
+            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
             if(uniforms.uZoom.value > 20.0) uniforms.uZoom.value = 20.0;
         });
-
         document.getElementById('btn-journey').addEventListener('click', () => {
-            currentMode = 'journey';
-            updateMenuUI('btn-journey');
-            orbitPanel.classList.remove('visible');
-            journeyPanel.classList.add('visible');
-            journeySettings.distanceLy = 26000;
-            journeySettings.traveledLy = 0;
-            journeySettings.shipTimeYrs = 0;
-            uniforms.uZoom.value = 50.0; // Zoom out to simulate distance
+            currentMode = 'journey'; updateMenuUI('btn-journey');
+            orbitPanel.classList.remove('visible'); journeyPanel.classList.add('visible');
+            journeySettings.distanceLy = 26000; journeySettings.traveledLy = 0; journeySettings.shipTimeYrs = 0;
+            uniforms.uZoom.value = 50.0;
         });
-
         document.getElementById('btn-reset').addEventListener('click', () => {
-            currentMode = 'manual';
-            updateMenuUI('btn-manual');
-            orbitPanel.classList.remove('visible');
-            journeyPanel.classList.remove('visible');
-            uniforms.uZoom.value = 12.0;
-            uniforms.uMouse.value.set(0.85, 0.08);
-            glassMenu.classList.remove('open');
-            menuArrow.textContent = 'keyboard_arrow_down';
+            currentMode = 'manual'; updateMenuUI('btn-manual');
+            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
+            uniforms.uZoom.value = 12.0; uniforms.uMouse.value.set(0.85, 0.08);
+            glassMenu.classList.remove('open'); document.getElementById('menu-arrow').textContent = 'keyboard_arrow_down';
         });
 
-        // Orbit Sliders Control
         const bindSlider = (id, param, displayId) => {
-            const slider = document.getElementById(id);
-            const display = document.getElementById(displayId);
-            slider.addEventListener('input', (e) => {
+            document.getElementById(id).addEventListener('input', (e) => {
                 orbitSettings[param] = parseFloat(e.target.value);
-                display.textContent = orbitSettings[param].toFixed(2);
+                document.getElementById(displayId).textContent = orbitSettings[param].toFixed(2);
             });
         };
-        bindSlider('orbit-speed', 'speed', 'val-speed');
-        bindSlider('orbit-radius', 'radius', 'val-radius');
-        bindSlider('orbit-height', 'height', 'val-height');
+        bindSlider('orbit-speed', 'speed', 'val-speed'); bindSlider('orbit-radius', 'radius', 'val-radius'); bindSlider('orbit-height', 'height', 'val-height');
 
-        // --- FEATURE 2: Time Dilation State & Logic ---
-        let earthTimeSecs = 0;
-        let bhTimeSecs = 0;
-        const RS_MATH = 1.0; // Schwarzschild radius
-
-        function formatTime(seconds) {
-            if (!isFinite(seconds) || seconds > 1e12) return "Infinity";
-            let y = Math.floor(seconds / (3600*24*365));
-            let d = Math.floor((seconds % (3600*24*365)) / (3600*24));
-            let h = Math.floor((seconds % (3600*24)) / 3600);
-            let m = Math.floor((seconds % 3600) / 60);
-            let s = (seconds % 60).toFixed(1);
-            
-            if (y > 0) return `${y}y ${d}d ${h}h`;
-            if (d > 0) return `${d}d ${h}h ${m}m`;
-            if (h > 0) return `${h}h ${m}m ${s}s`;
-            if (m > 0) return `${m}m ${s}s`;
-            return `${s}s`;
-        }
-
+        // --- Feature Variables ---
+        let earthTimeSecs = 0; let bhTimeSecs = 0; const RS_MATH = 1.0;
+        let journeySettings = { distanceLy: 26000, traveledLy: 0, speedC: 0.0001, shipTimeYrs: 0 };
+        
         const elEarthTime = document.getElementById('earth-time');
         const elBhTime = document.getElementById('bh-time');
         const elDilation = document.getElementById('dilation-factor');
-
-        // --- FEATURE 3: Journey State & Logic ---
-        let journeySettings = {
-            distanceLy: 26000, traveledLy: 0, speedC: 0.0001, shipTimeYrs: 0
-        };
-        const jLoc = document.getElementById('j-loc');
-        const jDist = document.getElementById('j-dist');
-        const jSpeed = document.getElementById('j-speed');
-        const jShipTime = document.getElementById('j-ship-time');
+        
+        const jLoc = document.getElementById('j-loc'); const jDist = document.getElementById('j-dist');
+        const jSpeed = document.getElementById('j-speed'); const jShipTime = document.getElementById('j-ship-time');
         const jEta = document.getElementById('j-eta');
 
         document.getElementById('journey-speed-slider').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            // Exponential warp curve for limitless illusion
-            if(val <= 1) journeySettings.speedC = 0.0001 + val * 0.0099; // up to 0.01c
-            else if(val <= 2) journeySettings.speedC = 0.01 + (val-1) * 0.09; // up to 0.1c
-            else if(val <= 3) journeySettings.speedC = 0.1 + (val-2) * 0.899; // up to 0.999c
-            else journeySettings.speedC = Math.pow(10, val - 3); // Warp speeds up to 10,000c
+            if(val <= 1) journeySettings.speedC = 0.0001 + val * 0.0099;
+            else if(val <= 2) journeySettings.speedC = 0.01 + (val-1) * 0.09;
+            else if(val <= 3) journeySettings.speedC = 0.1 + (val-2) * 0.899;
+            else journeySettings.speedC = Math.pow(10, val - 3);
         });
+
+        function formatTime(seconds) {
+            if (!isFinite(seconds) || seconds > 1e12) return "Infinity";
+            let y = Math.floor(seconds / (3600*24*365)); let d = Math.floor((seconds % (3600*24*365)) / (3600*24));
+            let h = Math.floor((seconds % (3600*24)) / 3600); let m = Math.floor((seconds % 3600) / 60); let s = (seconds % 60).toFixed(1);
+            if (y > 0) return `${y}y ${d}d ${h}h`; if (d > 0) return `${d}d ${h}h ${m}m`;
+            if (h > 0) return `${h}h ${m}m ${s}s`; if (m > 0) return `${m}m ${s}s`; return `${s}s`;
+        }
 
         function formatYrs(y) {
             if (y < 1) return (y * 365).toFixed(1) + " days";
@@ -997,16 +998,66 @@
             return y.toFixed(2) + " yrs";
         }
 
-        // --- ANIMATION LOOP ---
-        const clock = new THREE.Clock();
-        
+        // Feature 5: Info and Facts
+        const facts = [
+            "Black holes do not suck everything in like vacuum cleaners.",
+            "The first image of a black hole was released in 2019.",
+            "Our galaxy contains a supermassive black hole at its center.",
+            "Light itself bends around a black hole.",
+            "Some black holes are billions of times more massive than the Sun."
+        ];
+        setInterval(() => {
+            document.getElementById('random-fact').textContent = facts[Math.floor(Math.random() * facts.length)];
+        }, 8000);
+
+        const elDistStatus = document.getElementById('info-distance-status');
+        const elDistDesc = document.getElementById('info-distance-desc');
+        const elLabels = {
+            singularity: document.getElementById('lbl-singularity'),
+            horizon: document.getElementById('lbl-event-horizon'),
+            photon: document.getElementById('lbl-photon-sphere'),
+            accretion: document.getElementById('lbl-accretion')
+        };
+
+        // Project 3D to 2D
+        function getScreenCoords(p3, uZoom, uMouseX, uMouseY, width, height) {
+            const cx = Math.cos(uMouseX * 6.28), sx = Math.sin(uMouseX * 6.28);
+            const cy = Math.cos(uMouseY * 3.14), sy = Math.sin(uMouseY * 3.14);
+            
+            let ro = { x: 0, y: uZoom * -sy, z: uZoom * cy }; 
+            ro = { x: ro.z * sx + ro.x * cx, y: ro.y, z: ro.z * cx - ro.x * sx };
+            
+            let len = Math.sqrt(ro.x*ro.x + ro.y*ro.y + ro.z*ro.z);
+            let cw = { x: -ro.x/len, y: -ro.y/len, z: -ro.z/len };
+            let cp = { x: 0, y: 1, z: 0 };
+            
+            let cu = { x: cw.y*cp.z - cw.z*cp.y, y: cw.z*cp.x - cw.x*cp.z, z: cw.x*cp.y - cw.y*cp.x };
+            let cuLen = Math.sqrt(cu.x*cu.x + cu.y*cu.y + cu.z*cu.z);
+            cu = { x: cu.x/cuLen, y: cu.y/cuLen, z: cu.z/cuLen };
+            let cv = { x: cu.y*cw.z - cu.z*cw.y, y: cu.z*cw.x - cu.x*cw.z, z: cu.x*cw.y - cu.y*cw.x };
+            
+            let dir = { x: p3.x - ro.x, y: p3.y - ro.y, z: p3.z - ro.z };
+            let dotCw = dir.x*cw.x + dir.y*cw.y + dir.z*cw.z;
+            
+            if (dotCw <= 0.1) return null; // Behind camera
+            
+            let t = 1.4 / dotCw; 
+            let planePos = { x: dir.x*t, y: dir.y*t, z: dir.z*t };
+            
+            let uvX = (planePos.x*cu.x + planePos.y*cu.y + planePos.z*cu.z) / (width / height);
+            let uvY = planePos.x*cv.x + planePos.y*cv.y + planePos.z*cv.z;
+            
+            return { x: (uvX * 0.5 + 0.5) * width, y: (-uvY * 0.5 + 0.5) * height };
+        }
+
+        // --- Main Render Loop ---
         function animate() {
             requestAnimationFrame(animate);
-            if (!isSimulationRunning) return; // Pause execution until started
+            if (!isSimulationRunning) return;
 
             const delta = clock.getDelta();
 
-            // --- Feature 4: Solar System Render Mode ---
+            // Solar System Render
             if (currentMode === 'solar_system') {
                 planets.forEach(p => {
                     if (p.data.d > 0) {
@@ -1016,7 +1067,6 @@
                     }
                 });
                 
-                // Allow mouse to rotate Solar System camera
                 solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * 80;
                 solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * 80;
                 solarCamera.position.y = 40 + (uniforms.uMouse.value.y * 100);
@@ -1024,24 +1074,57 @@
 
                 renderer.render(solarScene, solarCamera);
                 
-                // Handle controls for solar system
                 if (keys.left) uniforms.uMouse.value.x -= moveStep * 10 * delta;
                 if (keys.right) uniforms.uMouse.value.x += moveStep * 10 * delta;
                 if (keys.up) uniforms.uMouse.value.y = Math.min(0.8, uniforms.uMouse.value.y + moveStep * 10 * delta);
                 if (keys.down) uniforms.uMouse.value.y = Math.max(-0.2, uniforms.uMouse.value.y - moveStep * 10 * delta);
                 
-                return; // Skip black hole processing
+                // Hide Labels/Info in Solar Mode
+                document.getElementById('labels-container').style.display = 'none';
+                document.getElementById('info-panel').style.display = 'none';
+                return; 
             }
 
-            // --- Raymarcher Execution ---
+            // Raymarcher Render
             uniforms.uTime.value += delta;
 
-            // --- Feature 2: Scientific Time Dilation Math ---
-            if (showTimeDilation) {
-                // t_observer = t_local / sqrt(1 - Rs/r)
-                const r = Math.max(RS_MATH + 0.0001, uniforms.uZoom.value); // Clamp near horizon
-                const dilationFactor = 1.0 / Math.sqrt(1.0 - RS_MATH / r);
+            // Info Panel & Labels Update
+            if (currentMode !== 'journey' || journeySettings.distanceLy <= 25500) {
+                const dist = uniforms.uZoom.value;
+                document.getElementById('labels-container').style.display = 'block';
+                document.getElementById('info-panel').style.display = 'flex';
+
+                if (dist > 30) {
+                    elDistStatus.textContent = "Far Away"; elDistDesc.textContent = "Observing from a safe distance. Gravitational effects are weak.";
+                } else if (dist > 5) {
+                    elDistStatus.textContent = "Approaching"; elDistDesc.textContent = "Light bends noticeably. Gravitational lensing is highly visible.";
+                } else if (dist > 1.2) {
+                    elDistStatus.textContent = "Near Event Horizon"; elDistDesc.textContent = "Time slows dramatically compared to Earth. Escape velocity nears 'c'.";
+                } else {
+                    elDistStatus.textContent = "Inside (Simulation)"; elDistDesc.textContent = "Event horizon crossed. According to Relativity, no information can escape.";
+                }
+
+                const pts = { singularity: {x:0, y:0, z:0}, horizon: {x:1.0, y:0.1, z:0}, photon: {x:1.5, y:-0.5, z:0}, accretion: {x:6.0, y:0, z:0} };
                 
+                for (let key in pts) {
+                    const coords = getScreenCoords(pts[key], uniforms.uZoom.value, uniforms.uMouse.value.x, uniforms.uMouse.value.y, window.innerWidth, window.innerHeight);
+                    if (coords && coords.x > 0 && coords.x < window.innerWidth && coords.y > 0 && coords.y < window.innerHeight) {
+                        elLabels[key].style.left = coords.x + 'px';
+                        elLabels[key].style.top = coords.y + 'px';
+                        elLabels[key].style.opacity = dist < 2 && key === 'accretion' ? '0' : '0.8';
+                    } else {
+                        elLabels[key].style.opacity = '0';
+                    }
+                }
+            } else {
+                document.getElementById('labels-container').style.display = 'none';
+                document.getElementById('info-panel').style.display = 'none';
+            }
+
+            // Time Dilation Math
+            if (showTimeDilation) {
+                const r = Math.max(RS_MATH + 0.0001, uniforms.uZoom.value);
+                const dilationFactor = 1.0 / Math.sqrt(1.0 - RS_MATH / r);
                 bhTimeSecs += delta; 
                 earthTimeSecs += delta * dilationFactor;
 
@@ -1050,7 +1133,7 @@
                 elBhTime.textContent = formatTime(bhTimeSecs);
             }
 
-            // Handle Manual Button Movement
+            // Camera Manipulations
             if (keys.left) uniforms.uMouse.value.x -= moveStep * 20 * delta;
             if (keys.right) uniforms.uMouse.value.x += moveStep * 20 * delta;
             if (keys.up) uniforms.uMouse.value.y = Math.min(0.49, uniforms.uMouse.value.y + moveStep * 20 * delta);
@@ -1058,25 +1141,14 @@
             if (keys.in) uniforms.uZoom.value = Math.max(2.5, uniforms.uZoom.value - 10.0 * delta);
             if (keys.out) uniforms.uZoom.value = Math.min(50.0, uniforms.uZoom.value + 10.0 * delta);
 
-            // --- Feature 1: Orbit Camera Logic ---
             if (currentMode === 'orbit') {
-                // Smoothly interpolate radius (zoom)
                 uniforms.uZoom.value += (orbitSettings.radius - uniforms.uZoom.value) * 1.5 * delta;
-                
-                // Smoothly interpolate height (y-axis)
                 uniforms.uMouse.value.y += (orbitSettings.height - uniforms.uMouse.value.y) * 1.5 * delta;
-                
-                // Continuously rotate (x-axis / azimuth)
                 uniforms.uMouse.value.x += orbitSettings.speed * delta;
-            } 
-            
-            // --- Feature 3: Journey Logic ---
-            else if (currentMode === 'journey') {
+            } else if (currentMode === 'journey') {
                 const v = journeySettings.speedC;
-                const effectiveV = Math.min(v, 0.999999); // Gamma breaks above c
+                const effectiveV = Math.min(v, 0.999999);
                 const gamma = 1.0 / Math.sqrt(1.0 - effectiveV * effectiveV);
-                
-                // Real-time speed scale (10x normal progression to prevent boredom)
                 const simSpeed = 10; 
                 const travelLy = v * delta * simSpeed;
                 
@@ -1085,23 +1157,16 @@
                     journeySettings.traveledLy += travelLy;
                     journeySettings.shipTimeYrs += (travelLy / effectiveV) / gamma;
                 }
-
                 if (journeySettings.distanceLy < 0) journeySettings.distanceLy = 0;
 
-                // Update UI text
                 jLoc.textContent = journeySettings.distanceLy > 25500 ? 'Solar System' : (journeySettings.distanceLy > 100 ? 'Deep Space' : (journeySettings.distanceLy > 1 ? 'Approaching' : 'Arrived'));
                 jDist.textContent = journeySettings.distanceLy > 1000 ? (journeySettings.distanceLy/1000).toFixed(1) + 'k ly' : journeySettings.distanceLy.toFixed(2) + ' ly';
                 jSpeed.textContent = (v > 1 ? v.toFixed(0) + ' c (Warp)' : v.toFixed(5) + ' c');
                 jShipTime.textContent = formatYrs(journeySettings.shipTimeYrs);
-                
-                const etaYrs = (journeySettings.distanceLy / v) / gamma;
-                jEta.textContent = formatYrs(etaYrs);
+                jEta.textContent = formatYrs((journeySettings.distanceLy / v) / gamma);
 
-                // Rendering Illusion: Solar System -> Warp Space -> Black Hole
                 if (journeySettings.distanceLy > 25500) {
-                    const progress = (26000 - journeySettings.distanceLy) / 500; // 0 to 1
-                    
-                    // Planets orbit faster to show time passing
+                    const progress = (26000 - journeySettings.distanceLy) / 500;
                     planets.forEach(p => { if (p.data.d > 0) p.angle += p.data.v * delta * 5.0; });
                     planets.forEach(p => {
                         if (p.data.d > 0) {
@@ -1109,28 +1174,20 @@
                             p.mesh.position.z = Math.sin(p.angle) * p.data.d;
                         }
                     });
-                    
                     solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * (80 + progress * 800);
                     solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * (80 + progress * 800);
                     solarCamera.position.y = 40 + progress * 200 + (uniforms.uMouse.value.y * 100);
                     solarCamera.lookAt(0, 0, 0);
                     renderer.render(solarScene, solarCamera);
-                    return; // Skip black hole render
+                    return; 
                 } else {
-                    // Visual distance mapping (50 = far space, 5 = near horizon)
                     uniforms.uZoom.value = 5.0 + (journeySettings.distanceLy / 25500.0) * 45.0;
                 }
-            }
-
-            // --- Legacy Travel Logic ---
-            else if (currentMode === 'travel') {
+            } else if (currentMode === 'travel') {
                 const dist = uniforms.uZoom.value;
                 const speed = 2.0 + (15.0 / (dist * dist + 0.1)); 
                 uniforms.uZoom.value -= speed * delta;
-
-                if (uniforms.uZoom.value < 1.8) {
-                    uniforms.uZoom.value = 1.8;
-                }
+                if (uniforms.uZoom.value < 1.8) uniforms.uZoom.value = 1.8;
             }
 
             renderer.render(scene, camera);
@@ -1140,8 +1197,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             uniforms.uResolution.value.x = window.innerWidth;
             uniforms.uResolution.value.y = window.innerHeight;
-            
-            // Feature 4 Camera Update
             solarCamera.aspect = window.innerWidth / window.innerHeight;
             solarCamera.updateProjectionMatrix();
         });
