@@ -472,9 +472,18 @@
                 <div class="menu-item" id="btn-journey">
                     <span class="material-symbols-outlined">flight_takeoff</span> Journey from Earth
                 </div>
-                <div class="menu-item" id="btn-toggle-time" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">
+                
+                <div class="menu-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; cursor: default;">
+                    <strong>Toggles</strong>
+                </div>
+                <div class="menu-item" id="btn-toggle-time">
                     <span class="material-symbols-outlined" id="toggle-time-icon">toggle_on</span> <span id="toggle-time-text">Disable Time Dilation</span>
                 </div>
+                <!-- Spacetime Grid Toggle -->
+                <div class="menu-item" id="btn-toggle-grid">
+                    <span class="material-symbols-outlined" id="toggle-grid-icon">grid_off</span> <span id="toggle-grid-text">Show Spacetime Grid</span>
+                </div>
+
                 <div class="menu-item" id="btn-reset" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px;">
                     <span class="material-symbols-outlined">restart_alt</span> Reset View
                 </div>
@@ -540,6 +549,7 @@
         uniform vec2 uResolution;
         uniform vec2 uMouse; 
         uniform float uZoom; 
+        uniform float uShowGrid; // Spacetime Grid toggle
 
         varying vec2 vUv;
 
@@ -594,10 +604,25 @@
             return f;
         }
 
-        vec3 getBackground(vec3 dir) {
+        vec3 getBackground(vec3 dir, float showGrid) {
             float n = fbm(dir.xy * 25.0) * fbm(dir.yz * 25.0);
             float stars = pow(max(0.0, n), 28.0) * 500.0; 
-            return vec3(stars);
+            vec3 bg = vec3(stars);
+
+            // Spacetime Bending Grid Projection
+            if (showGrid > 0.5) {
+                // Map the final bent ray direction to a spherical coordinate grid
+                float u = atan(dir.z, dir.x) * 4.0;
+                float v = asin(dir.y) * 8.0;
+                
+                vec2 grid = abs(fract(vec2(u, v)) - 0.5);
+                float line = smoothstep(0.44, 0.48, max(grid.x, grid.y));
+                
+                // Add a glowing cyan space-time grid
+                bg += vec3(0.0, 0.6, 1.0) * line * 0.8;
+            }
+
+            return bg;
         }
 
         vec3 getJet(vec3 p) {
@@ -749,7 +774,8 @@
             }
 
             if (accumDensity < 1.0 && !hitHorizon) {
-                accumColor += getBackground(dir) * (1.0 - accumDensity);
+                // Background sky with optional Spacetime Grid
+                accumColor += getBackground(dir, uShowGrid) * (1.0 - accumDensity);
             }
 
             accumColor = vec3(1.0) - exp(-accumColor * 1.5);
@@ -775,7 +801,8 @@
             uTime: { value: 0 },
             uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
             uMouse: { value: new THREE.Vector2(0.85, 0.08) }, 
-            uZoom: { value: 12.0 }
+            uZoom: { value: 12.0 },
+            uShowGrid: { value: 0.0 } // Grid toggle uniform
         };
 
         const material = new THREE.ShaderMaterial({
@@ -909,6 +936,15 @@
             document.getElementById('time-dilation-panel').style.display = showTimeDilation ? 'block' : 'none';
             document.getElementById('toggle-time-icon').textContent = showTimeDilation ? 'toggle_on' : 'toggle_off';
             document.getElementById('toggle-time-text').textContent = showTimeDilation ? 'Disable Time Dilation' : 'Enable Time Dilation';
+        });
+
+        // Grid Toggle logic
+        let showGrid = false;
+        document.getElementById('btn-toggle-grid').addEventListener('click', () => {
+            showGrid = !showGrid;
+            uniforms.uShowGrid.value = showGrid ? 1.0 : 0.0;
+            document.getElementById('toggle-grid-icon').textContent = showGrid ? 'grid_on' : 'grid_off';
+            document.getElementById('toggle-grid-text').textContent = showGrid ? 'Hide Spacetime Grid' : 'Show Spacetime Grid';
         });
 
         menuToggle.addEventListener('click', () => {
