@@ -117,233 +117,97 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             z-index: 50;
         }
+        
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,157,0,0.3); padding-bottom: 8px; margin-bottom: 12px;
+        }
+        .panel-title { font-size: 1rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px;}
+        .close-btn { cursor: pointer; color: #aaa; transition: 0.2s; font-size: 1.2rem; }
+        .close-btn:hover { color: white; transform: scale(1.1); }
 
         /* Orbit Control Panel */
-        #orbit-controls-panel {
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            width: 200px;
-        }
+        #orbit-controls-panel { display: none; flex-direction: column; gap: 10px; width: 220px; }
         #orbit-controls-panel.visible { display: flex; }
-        .slider-group { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+        .slider-group { display: flex; flex-direction: column; gap: 5px; }
         .slider-group label { font-size: 0.8rem; color: #ccc; display: flex; justify-content: space-between; }
         .slider-group input[type=range] { accent-color: var(--primary); width: 100%; cursor: pointer; }
         
         /* Time Dilation Panel */
-        #time-dilation-panel {
-            position: absolute;
-            top: 120px;
-            left: 20px;
-            width: 250px;
-        }
+        #time-dilation-panel { position: absolute; top: 120px; left: 20px; width: 250px; display: none; }
         
         /* Journey Panel */
-        #journey-panel {
-            display: none;
-            position: absolute;
-            top: 120px;
-            right: 20px;
-            width: 250px;
-        }
+        #journey-panel { display: none; position: absolute; top: 120px; right: 20px; width: 250px; }
         #journey-panel.visible { display: block; }
 
-        .time-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 4px;
-        }
+        .time-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; }
         .time-row:last-child { border-bottom: none; margin-bottom: 0; }
         .time-label { color: #aaa; }
         .time-value { font-family: 'Orbitron', monospace; font-weight: bold; color: var(--primary); }
-        .time-title { font-size: 1rem; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid var(--primary); padding-bottom: 5px; display: flex; align-items: center; gap: 8px;}
 
         /* Information Panel */
-        #info-panel {
-            position: absolute;
-            top: 280px;
-            left: 20px;
-            width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .info-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid rgba(255,157,0,0.3); padding-bottom: 5px; }
+        #info-panel { position: absolute; top: 280px; left: 20px; width: 300px; display: flex; flex-direction: column; gap: 15px; }
         .info-status { font-weight: bold; color: #fff; font-size: 0.9rem; margin-top: 5px; }
         .info-desc { font-size: 0.8rem; color: #ccc; line-height: 1.4; margin-top: 5px;}
         
-        .fact-box {
-            background: rgba(255, 157, 0, 0.1);
-            border-left: 3px solid var(--primary);
-            padding: 10px;
-            font-size: 0.75rem;
-            color: #ddd;
-            font-style: italic;
-        }
+        .fact-box { background: rgba(255, 157, 0, 0.1); border-left: 3px solid var(--primary); padding: 10px; font-size: 0.75rem; color: #ddd; font-style: italic; }
 
         /* 3D Floating Labels */
-        #labels-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 40;
-            overflow: hidden;
-        }
+        .labels-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; overflow: hidden; }
         .floating-label {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 0.75rem;
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            position: absolute; transform: translate(-50%, -50%);
+            color: white; font-size: 0.75rem; font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px; text-transform: uppercase;
             text-shadow: 0px 0px 4px #000, 0px 0px 8px var(--primary);
-            pointer-events: none;
-            opacity: 0.8;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: opacity 0.2s;
+            pointer-events: auto; cursor: pointer; opacity: 0.8;
+            display: flex; flex-direction: column; align-items: center;
+            transition: all 0.2s;
         }
-        .floating-label::after {
-            content: '';
-            width: 4px; height: 4px;
-            background: var(--primary);
-            border-radius: 50%;
-            margin-top: 4px;
-            box-shadow: 0 0 10px var(--primary);
+        .floating-label:hover { color: var(--primary); transform: translate(-50%, -50%) scale(1.15); opacity: 1 !important; z-index: 100; }
+        .floating-label::after { content: ''; width: 4px; height: 4px; background: var(--primary); border-radius: 50%; margin-top: 4px; box-shadow: 0 0 10px var(--primary); }
+        .planet-label { color: #ddd; text-shadow: 0px 0px 4px #000, 0px 0px 8px #fff; }
+        .planet-label:hover { color: white; }
+        .planet-label::after { background: white; box-shadow: 0 0 10px white; }
+
+        /* Information Modal */
+        #info-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 3000; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
         }
+        .info-modal-content {
+            background: var(--glass); border: 1px solid var(--primary); padding: 25px;
+            border-radius: 15px; max-width: 450px; width: 90%; color: white; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); pointer-events: auto;
+        }
+        .info-modal-img { width: 100%; border-radius: 8px; margin-bottom: 15px; object-fit: cover; max-height: 250px; border: 1px solid rgba(255,255,255,0.1); }
+        .info-modal-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--primary); margin-bottom: 10px; text-transform: uppercase;}
+        .info-modal-desc { font-size: 0.95rem; color: #ddd; line-height: 1.5; margin-bottom: 20px; text-align: justify; }
 
         /* On-Screen Controls */
-        #controls-area {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-            display: grid;
-            grid-template-columns: repeat(3, 50px);
-            grid-template-rows: repeat(2, 50px);
-            gap: 10px;
-            pointer-events: auto;
-        }
-        .ctrl-btn {
-            width: 50px;
-            height: 50px;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-        }
+        #controls-area { position: absolute; bottom: 40px; right: 40px; display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); gap: 10px; pointer-events: auto; }
+        .ctrl-btn { width: 50px; height: 50px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; backdrop-filter: blur(5px); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; user-select: none; }
         .ctrl-btn:active { background: var(--primary); color: black; transform: scale(0.95); }
         .ctrl-btn.up { grid-column: 2; grid-row: 1; }
         .ctrl-btn.left { grid-column: 1; grid-row: 2; }
         .ctrl-btn.down { grid-column: 2; grid-row: 2; }
         .ctrl-btn.right { grid-column: 3; grid-row: 2; }
         
-        /* Zoom Slider/Buttons */
-        #zoom-controls {
-            position: absolute;
-            bottom: 40px;
-            left: 40px;
-            display: flex;
-            gap: 10px;
-            pointer-events: auto;
-        }
-
-        /* Footer */
-        footer {
-            width: 100%;
-            text-align: center;
-            padding: 10px;
-            background: linear-gradient(to top, black, transparent);
-            font-size: 0.7rem;
-            color: #666;
-            pointer-events: auto;
-        }
+        #zoom-controls { position: absolute; bottom: 40px; left: 40px; display: flex; gap: 10px; pointer-events: auto; }
+        footer { width: 100%; text-align: center; padding: 10px; background: linear-gradient(to top, black, transparent); font-size: 0.7rem; color: #666; pointer-events: auto; }
         footer a { color: var(--primary); text-decoration: none; }
 
-        /* Mobile Modal */
-        #mobile-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background: #1a1a1a;
-            padding: 30px;
-            border-radius: 20px;
-            border: 1px solid var(--primary);
-            text-align: center;
-            max-width: 300px;
-        }
-        .modal-btn {
-            background: var(--primary);
-            color: black;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            margin-top: 20px;
-            cursor: pointer;
-        }
+        /* Desktop Modal */
+        #mobile-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center; max-width: 300px; }
+        .modal-btn { background: var(--primary); color: black; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-top: 20px; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { background: white; }
 
         /* Start Overlay */
-        #start-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: opacity 1s;
-        }
-        .start-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            color: var(--primary);
-            letter-spacing: 5px;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(255, 157, 0, 0.6);
-            text-align: center;
-        }
-        #btn-start-sim {
-            background: rgba(255, 157, 0, 0.1);
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 15px 40px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            border-radius: 8px;
-        }
-        #btn-start-sim:hover {
-            background: var(--primary);
-            color: black;
-            box-shadow: 0 0 25px var(--primary);
-        }
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 1s; }
+        .start-title { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; color: var(--primary); letter-spacing: 5px; margin-bottom: 30px; text-shadow: 0 0 20px rgba(255, 157, 0, 0.6); text-align: center; }
+        #btn-start-sim { background: rgba(255, 157, 0, 0.1); border: 2px solid var(--primary); color: var(--primary); padding: 15px 40px; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; border-radius: 8px; }
+        #btn-start-sim:hover { background: var(--primary); color: black; box-shadow: 0 0 25px var(--primary); }
 
         @media (max-width: 768px) {
             #mobile-modal { display: flex; }
@@ -371,6 +235,16 @@
         </div>
     </div>
 
+    <!-- Info Detail Modal (Feature Request) -->
+    <div id="info-modal">
+        <div class="info-modal-content">
+            <img id="modal-img" class="info-modal-img" src="" alt="Subject Image" onerror="this.style.display='none'">
+            <div id="modal-title" class="info-modal-title">Title</div>
+            <div id="modal-desc" class="info-modal-desc">Description goes here...</div>
+            <button class="modal-btn" onclick="document.getElementById('info-modal').style.display='none'">Close Data Link</button>
+        </div>
+    </div>
+
     <!-- Main UI Layer -->
     <div id="ui-layer">
         
@@ -381,25 +255,31 @@
         </header>
 
         <!-- 3D Floating Labels -->
-        <div id="labels-container">
+        <div id="bh-labels-container" class="labels-layer">
             <div class="floating-label" id="lbl-singularity">Singularity</div>
             <div class="floating-label" id="lbl-event-horizon">Event Horizon</div>
             <div class="floating-label" id="lbl-photon-sphere">Photon Sphere</div>
             <div class="floating-label" id="lbl-accretion">Accretion Disk</div>
+            <div class="floating-label" id="lbl-jet">Relativistic Jet</div>
+        </div>
+        
+        <div id="solar-labels-container" class="labels-layer" style="display: none;">
+            <!-- Dynamically populated -->
         </div>
 
         <!-- Information Panel -->
         <div id="info-panel" class="side-panel">
+            <div class="panel-header">
+                <div class="panel-title"><span class="material-symbols-outlined">satellite_alt</span> Telemetry Link</div>
+                <span class="material-symbols-outlined close-btn" onclick="document.getElementById('info-panel').style.display='none'">close</span>
+            </div>
             <div>
-                <div class="info-title">Observation Status</div>
                 <div class="info-status" id="info-distance-status">Analyzing Location...</div>
                 <div class="info-desc" id="info-distance-desc">...</div>
             </div>
-            <div>
-                <div class="info-title" id="info-focus-title">Target: Sagittarius A*</div>
-                <div class="info-desc" id="info-focus-desc">
-                    Located at the center of the Milky Way Galaxy, about 26,000 light-years from Earth. Mass is approximately 4.3 million Suns.
-                </div>
+            <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <div style="color: var(--primary); font-size: 0.9rem; font-weight: bold;">Target: Sagittarius A*</div>
+                <div class="info-desc">Located at the center of the Milky Way, about 26,000 ly from Earth. Mass: ~4.3M Suns.</div>
             </div>
             <div class="fact-box">
                 <strong>Did You Know?</strong><br>
@@ -407,40 +287,30 @@
             </div>
         </div>
 
-        <!-- Feature 2: Time Dilation Panel -->
+        <!-- Time Dilation Panel -->
         <div id="time-dilation-panel" class="side-panel">
-            <div class="time-title">
-                <span class="material-symbols-outlined" style="font-size:1.2rem;">schedule</span>
-                Relativistic Time
+            <div class="panel-header">
+                <div class="panel-title"><span class="material-symbols-outlined">schedule</span> Relativistic Time</div>
+                <span class="material-symbols-outlined close-btn" onclick="document.getElementById('btn-toggle-time').click()">close</span>
             </div>
-            <div class="time-row">
-                <span class="time-label">Earth Time:</span>
-                <span class="time-value" id="earth-time">0s</span>
-            </div>
-            <div class="time-row">
-                <span class="time-label">Local Time:</span>
-                <span class="time-value" id="bh-time">0s</span>
-            </div>
-            <div class="time-row">
-                <span class="time-label">Dilation Factor:</span>
-                <span class="time-value" id="dilation-factor">x1.00</span>
-            </div>
+            <div class="time-row"><span class="time-label">Earth Time:</span><span class="time-value" id="earth-time">0s</span></div>
+            <div class="time-row"><span class="time-label">Local Time:</span><span class="time-value" id="bh-time">0s</span></div>
+            <div class="time-row"><span class="time-label">Dilation Factor:</span><span class="time-value" id="dilation-factor">x1.00</span></div>
         </div>
 
-        <!-- Feature 3: Journey Panel -->
+        <!-- Journey Panel -->
         <div id="journey-panel" class="side-panel">
-            <div class="time-title">
-                <span class="material-symbols-outlined" style="font-size:1.2rem;">flight_takeoff</span>
-                Journey from Earth
+            <div class="panel-header">
+                <div class="panel-title"><span class="material-symbols-outlined">flight_takeoff</span> Warp Drive</div>
+                <span class="material-symbols-outlined close-btn" onclick="document.getElementById('btn-reset').click()">close</span>
             </div>
             <div class="time-row"><span class="time-label">Location:</span><span class="time-value" id="j-loc">Earth</span></div>
             <div class="time-row"><span class="time-label">Distance:</span><span class="time-value" id="j-dist">26,000 ly</span></div>
             <div class="time-row"><span class="time-label">Speed:</span><span class="time-value" id="j-speed">0.0001 c</span></div>
             <div class="time-row"><span class="time-label">Ship Time:</span><span class="time-value" id="j-ship-time">0y</span></div>
             <div class="time-row"><span class="time-label">ETA:</span><span class="time-value" id="j-eta">Infinity</span></div>
-            
             <div class="slider-group">
-                <label>Velocity Control (Warp Drive)</label>
+                <label>Velocity Control</label>
                 <input type="range" id="journey-speed-slider" min="0" max="7" step="0.01" value="0">
             </div>
         </div>
@@ -454,30 +324,17 @@
             </div>
             
             <div id="glass-menu">
-                <div class="menu-item" style="border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; cursor: default;">
-                    <strong>Camera Modes</strong>
-                </div>
-                <div class="menu-item active" id="btn-manual">
-                    <span class="material-symbols-outlined">pan_tool</span> Manual Mode
-                </div>
-                <div class="menu-item" id="btn-solar">
-                    <span class="material-symbols-outlined">public</span> View Solar System
-                </div>
-                <div class="menu-item" id="btn-orbit">
-                    <span class="material-symbols-outlined">360</span> Orbit (Cinematic)
-                </div>
-                <div class="menu-item" id="btn-travel">
-                    <span class="material-symbols-outlined">rocket_launch</span> Travel (Photon Mode)
-                </div>
-                <div class="menu-item" id="btn-journey">
-                    <span class="material-symbols-outlined">flight_takeoff</span> Journey from Earth
-                </div>
+                <div class="menu-item" style="border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; cursor: default;"><strong>Camera Modes</strong></div>
+                <div class="menu-item active" id="btn-manual"><span class="material-symbols-outlined">pan_tool</span> Manual Mode</div>
+                <div class="menu-item" id="btn-solar"><span class="material-symbols-outlined">public</span> View Solar System</div>
+                <div class="menu-item" id="btn-orbit"><span class="material-symbols-outlined">360</span> Orbit (Cinematic)</div>
+                <div class="menu-item" id="btn-travel"><span class="material-symbols-outlined">rocket_launch</span> Travel (Photon Mode)</div>
+                <div class="menu-item" id="btn-journey"><span class="material-symbols-outlined">flight_takeoff</span> Journey from Earth</div>
                 
-                <div class="menu-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; cursor: default;">
-                    <strong>Toggles</strong>
-                </div>
+                <div class="menu-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; cursor: default;"><strong>Toggles</strong></div>
+                <!-- Time Dilation defaults to Disabled -->
                 <div class="menu-item" id="btn-toggle-time">
-                    <span class="material-symbols-outlined" id="toggle-time-icon">toggle_on</span> <span id="toggle-time-text">Disable Time Dilation</span>
+                    <span class="material-symbols-outlined" id="toggle-time-icon">toggle_off</span> <span id="toggle-time-text">Enable Time Dilation</span>
                 </div>
                 <!-- Spacetime Grid Toggle -->
                 <div class="menu-item" id="btn-toggle-grid">
@@ -491,21 +348,13 @@
 
             <!-- Orbit Control Panel -->
             <div id="orbit-controls-panel" class="side-panel">
-                <div style="font-size: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 5px;">
-                    <strong>Orbit Settings</strong>
+                <div class="panel-header">
+                    <div class="panel-title"><span class="material-symbols-outlined">360</span> Orbit Settings</div>
+                    <span class="material-symbols-outlined close-btn" onclick="document.getElementById('btn-manual').click()">close</span>
                 </div>
-                <div class="slider-group">
-                    <label>Speed <span id="val-speed">0.05</span></label>
-                    <input type="range" id="orbit-speed" min="-0.2" max="0.2" step="0.01" value="0.05">
-                </div>
-                <div class="slider-group">
-                    <label>Radius <span id="val-radius">20.0</span></label>
-                    <input type="range" id="orbit-radius" min="3.0" max="45.0" step="0.5" value="20.0">
-                </div>
-                <div class="slider-group">
-                    <label>Height <span id="val-height">0.10</span></label>
-                    <input type="range" id="orbit-height" min="-0.4" max="0.4" step="0.01" value="0.10">
-                </div>
+                <div class="slider-group"><label>Speed <span id="val-speed">0.05</span></label><input type="range" id="orbit-speed" min="-0.2" max="0.2" step="0.01" value="0.05"></div>
+                <div class="slider-group"><label>Radius <span id="val-radius">20.0</span></label><input type="range" id="orbit-radius" min="3.0" max="45.0" step="0.5" value="20.0"></div>
+                <div class="slider-group"><label>Height <span id="val-height">0.10</span></label><input type="range" id="orbit-height" min="-0.4" max="0.4" step="0.01" value="0.10"></div>
             </div>
         </div>
 
@@ -516,17 +365,11 @@
             <div class="ctrl-btn down" id="btn-down"><span class="material-symbols-outlined">expand_more</span></div>
             <div class="ctrl-btn right" id="btn-right"><span class="material-symbols-outlined">chevron_right</span></div>
         </div>
-
-        <!-- Zoom Controls -->
         <div id="zoom-controls">
             <div class="ctrl-btn" id="btn-in"><span class="material-symbols-outlined">add</span></div>
             <div class="ctrl-btn" id="btn-out"><span class="material-symbols-outlined">remove</span></div>
         </div>
-
-        <!-- Footer -->
-        <footer>
-            Project by <a href="https://github.com/Danishyousuf19" target="_blank">Danish Yousuf</a> | Schwarzschild Metric Integration | Built with WebGL & Three.js 
-        </footer>
+        <footer>Project by <a href="https://github.com/Danishyousuf19" target="_blank">Danish Yousuf</a> | Built with WebGL & Three.js</footer>
     </div>
     
     <!-- Three.js -->
@@ -535,22 +378,17 @@
     <!-- VERTEX SHADER -->
     <script id="vertexShader" type="x-shader/x-vertex">
         varying vec2 vUv;
-        void main() {
-            vUv = uv;
-            gl_Position = vec4(position, 1.0);
-        }
+        void main() { vUv = uv; gl_Position = vec4(position, 1.0); }
     </script>
 
     <!-- FRAGMENT SHADER -->
     <script id="fragmentShader" type="x-shader/x-fragment">
         precision highp float;
-
         uniform float uTime;
         uniform vec2 uResolution;
         uniform vec2 uMouse; 
         uniform float uZoom; 
-        uniform float uShowGrid; // Spacetime Grid toggle
-
+        uniform float uShowGrid; 
         varying vec2 vUv;
 
         // --- PHYSICAL CONSTANTS ---
@@ -571,36 +409,21 @@
         vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
         float snoise(vec2 v) {
             const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-            vec2 i  = floor(v + dot(v, C.yy) );
-            vec2 x0 = v -   i + dot(i, C.xx);
-            vec2 i1;
-            i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-            vec4 x12 = x0.xyxy + C.xxzz;
-            x12.xy -= i1;
-            i = mod289(i);
+            vec2 i  = floor(v + dot(v, C.yy) ); vec2 x0 = v - i + dot(i, C.xx);
+            vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+            vec4 x12 = x0.xyxy + C.xxzz; x12.xy -= i1; i = mod289(i);
             vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
             vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-            m = m*m ;
-            m = m*m ;
-            vec3 x = 2.0 * fract(p * C.www) - 1.0;
-            vec3 h = abs(x) - 0.5;
-            vec3 ox = floor(x + 0.5);
-            vec3 a0 = x - ox;
-            m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-            vec3 g;
-            g.x  = a0.x  * x0.x  + h.x  * x0.y;
-            g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+            m = m*m; m = m*m;
+            vec3 x = 2.0 * fract(p * C.www) - 1.0; vec3 h = abs(x) - 0.5; vec3 ox = floor(x + 0.5);
+            vec3 a0 = x - ox; m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+            vec3 g; g.x  = a0.x  * x0.x  + h.x  * x0.y; g.yz = a0.yz * x12.xz + h.yz * x12.yw;
             return 130.0 * dot(m, g);
         }
         
         float fbm(vec2 p) {
-            float f = 0.0;
-            float w = 0.5;
-            for (int i = 0; i < 5; i++) {
-                f += w * snoise(p);
-                p *= 2.1;
-                w *= 0.5;
-            }
+            float f = 0.0; float w = 0.5;
+            for (int i = 0; i < 5; i++) { f += w * snoise(p); p *= 2.1; w *= 0.5; }
             return f;
         }
 
@@ -609,34 +432,23 @@
             float stars = pow(max(0.0, n), 28.0) * 500.0; 
             vec3 bg = vec3(stars);
 
-            // Spacetime Bending Grid Projection
             if (showGrid > 0.5) {
-                // Map the final bent ray direction to a spherical coordinate grid
-                float u = atan(dir.z, dir.x) * 4.0;
-                float v = asin(dir.y) * 8.0;
-                
+                float u = atan(dir.z, dir.x) * 4.0; float v = asin(dir.y) * 8.0;
                 vec2 grid = abs(fract(vec2(u, v)) - 0.5);
                 float line = smoothstep(0.44, 0.48, max(grid.x, grid.y));
-                
-                // Add a glowing cyan space-time grid
                 bg += vec3(0.0, 0.6, 1.0) * line * 0.8;
             }
-
             return bg;
         }
 
         vec3 getJet(vec3 p) {
-            float r = length(p.xz);
-            float h = abs(p.y);
-            float startDist = RS * 2.8; 
+            float r = length(p.xz); float h = abs(p.y); float startDist = RS * 2.8; 
             if (h < startDist) return vec3(0.0);
             float d = h - startDist;
             float coneWidth = 0.06 + d * 0.15 + log(1.0 + d * 2.0) * 0.6;
-            
             if (r > coneWidth) return vec3(0.0);
 
-            float flow = h * 3.0 + uTime * 8.0; 
-            float angle = atan(p.z, p.x);
+            float flow = h * 3.0 + uTime * 8.0; float angle = atan(p.z, p.x);
             float turbulence = snoise(vec2(angle * 3.0, uTime * 0.5 + h));
             float noise = fbm(vec2(r * 5.0 + turbulence * 0.5, flow));
             
@@ -650,140 +462,77 @@
         vec3 getDiskData(vec3 p) {
             float r = length(p);
             if (r < DISK_INNER || r > DISK_OUTER) return vec3(0.0);
-            
-            float h = abs(p.y);
-            float thickness = DISK_HEIGHT * (r / DISK_OUTER) + 0.05;
+            float h = abs(p.y); float thickness = DISK_HEIGHT * (r / DISK_OUTER) + 0.05;
             if (h > thickness) return vec3(0.0);
 
-            float angle = atan(p.z, p.x);
-            float speed = 6.0 / (r * 0.5 + 0.1); 
+            float angle = atan(p.z, p.x); float speed = 6.0 / (r * 0.5 + 0.1); 
             float rotAngle = angle + uTime * speed * 0.2;
-            
             vec2 noiseCoord = vec2(rotAngle * 6.0, r); 
             noiseCoord += vec2(snoise(noiseCoord * 0.5), snoise(noiseCoord * 0.5 + 10.0)) * 0.5;
-            
-            float noise = fbm(noiseCoord);
-            noise = pow(max(0.0, noise), 1.6); 
-            
-            float grain = snoise(vec2(rotAngle * 60.0, r * 25.0));
-            noise += grain * 0.25;
+            float noise = pow(max(0.0, fbm(noiseCoord)), 1.6); 
+            noise += snoise(vec2(rotAngle * 60.0, r * 25.0)) * 0.25;
 
             float fade = smoothstep(DISK_INNER, DISK_INNER + 0.2, r) * (1.0 - smoothstep(DISK_OUTER - 2.0, DISK_OUTER, r));
             float verticalFade = 1.0 - smoothstep(0.0, thickness, h);
-            
             float density = max(0.0, noise * fade * verticalFade * 2.2);
             float temp = 1.0 - smoothstep(DISK_INNER, DISK_OUTER * 0.8, r);
-            
             return vec3(density, temp, r);
         }
 
         float getDopplerFactor(vec3 pos, vec3 dir, float r) {
             vec3 vel = normalize(vec3(-pos.z, 0.0, pos.x));
-            float beta = 0.6 * sqrt(RS / r); 
-            float cosTheta = dot(dir, vel);
-            float doppler = 1.0 / (1.0 - beta * cosTheta);
-            return pow(doppler, 4.0); 
+            float beta = 0.6 * sqrt(RS / r); float cosTheta = dot(dir, vel);
+            return pow(1.0 / (1.0 - beta * cosTheta), 4.0); 
         }
 
-        mat3 rotateY(float angle) {
-            float c = cos(angle);
-            float s = sin(angle);
-            return mat3(c, 0, s, 0, 1, 0, -s, 0, c);
-        }
-        
-        mat3 rotateX(float angle) {
-            float c = cos(angle);
-            float s = sin(angle);
-            return mat3(1, 0, 0, 0, c, -s, 0, s, c);
-        }
+        mat3 rotateY(float angle) { float c = cos(angle); float s = sin(angle); return mat3(c, 0, s, 0, 1, 0, -s, 0, c); }
+        mat3 rotateX(float angle) { float c = cos(angle); float s = sin(angle); return mat3(1, 0, 0, 0, c, -s, 0, s, c); }
 
         void main() {
-            vec2 uv = (vUv - 0.5) * 2.0;
-            uv.x *= uResolution.x / uResolution.y;
+            vec2 uv = (vUv - 0.5) * 2.0; uv.x *= uResolution.x / uResolution.y;
+            vec3 ro = vec3(0.0, 0.0, uZoom);
+            ro = rotateY(uMouse.x * 6.28) * rotateX(uMouse.y * 3.14) * ro;
 
-            float camDist = uZoom;
-            vec3 ro = vec3(0.0, 0.0, camDist);
-            
-            mat3 rotY = rotateY(uMouse.x * 6.28);
-            mat3 rotX = rotateX(uMouse.y * 3.14);
-            ro = rotY * rotX * ro;
-
-            vec3 ta = vec3(0.0);
-            vec3 cw = normalize(ta - ro);
-            vec3 cp = vec3(0.0, 1.0, 0.0);
-            vec3 cu = normalize(cross(cw, cp));
-            vec3 cv = normalize(cross(cu, cw));
+            vec3 cw = normalize(-ro); vec3 cp = vec3(0.0, 1.0, 0.0);
+            vec3 cu = normalize(cross(cw, cp)); vec3 cv = normalize(cross(cu, cw));
             vec3 rd = normalize(uv.x * cu + uv.y * cv + 1.4 * cw);
 
-            vec3 pos = ro;
-            vec3 dir = rd;
-            vec3 accumColor = vec3(0.0);
-            float accumDensity = 0.0;
-            
-            vec3 h_vec = cross(pos, dir);
-            float h2 = dot(h_vec, h_vec);
-
-            bool hitHorizon = false;
-            float stepSize = 0.0;
+            vec3 pos = ro; vec3 dir = rd; vec3 accumColor = vec3(0.0); float accumDensity = 0.0;
+            vec3 h_vec = cross(pos, dir); float h2 = dot(h_vec, h_vec);
+            bool hitHorizon = false; float stepSize = 0.0;
 
             for(int i = 0; i < MAX_STEPS; i++) {
-                float r2 = dot(pos, pos);
-                float r = sqrt(r2);
-
-                float r_ellip = length(pos * vec3(1.0, 1.15, 1.0)); 
-                if (r_ellip < RS) { hitHorizon = true; break; }
+                float r2 = dot(pos, pos); float r = sqrt(r2);
+                if (length(pos * vec3(1.0, 1.15, 1.0)) < RS) { hitHorizon = true; break; }
                 if (r > 40.0) break;
 
                 stepSize = max(0.02, 0.05 * r); 
-                vec3 acc = -1.5 * h2 * pos / pow(r2, 2.5);
-                dir += acc * stepSize;
-                dir = normalize(dir);
+                dir = normalize(dir - 1.5 * h2 * pos / pow(r2, 2.5) * stepSize);
                 pos += dir * stepSize;
 
                 if (abs(pos.y) > RS * 1.5 && length(pos.xz) < 3.0) { 
                     vec3 jetCol = getJet(pos);
-                    if (length(jetCol) > 0.0) {
-                        accumColor += jetCol * (1.0 - accumDensity);
-                        accumDensity += 0.05; 
-                    }
+                    if (length(jetCol) > 0.0) { accumColor += jetCol * (1.0 - accumDensity); accumDensity += 0.05; }
                 }
 
                 if (abs(pos.y) < DISK_HEIGHT * 2.0) {
                     vec3 diskData = getDiskData(pos);
-                    float density = diskData.x;
-                    
-                    if (density > 0.001) {
-                        float temp = diskData.y;
-                        float distR = diskData.z;
-
-                        vec3 gasColor = mix(COLOR_COOL, COLOR_MID, temp);
-                        gasColor = mix(gasColor, COLOR_HOT, smoothstep(0.6, 1.0, temp));
-
-                        float beaming = getDopplerFactor(pos, dir, distR);
-                        float redshift = sqrt(1.0 - RS/distR);
-                        
-                        gasColor *= beaming * redshift;
-
-                        float absorption = density * 0.3 * stepSize * 6.0; 
+                    if (diskData.x > 0.001) {
+                        vec3 gasColor = mix(mix(COLOR_COOL, COLOR_MID, diskData.y), COLOR_HOT, smoothstep(0.6, 1.0, diskData.y));
+                        gasColor *= getDopplerFactor(pos, dir, diskData.z) * sqrt(1.0 - RS/diskData.z);
+                        float absorption = diskData.x * 0.3 * stepSize * 6.0; 
                         accumColor += gasColor * absorption * (1.0 - accumDensity);
                         accumDensity += absorption;
-                        
                         if (accumDensity >= 0.98) break;
                     }
                 }
             }
 
-            if (accumDensity < 1.0 && !hitHorizon) {
-                // Background sky with optional Spacetime Grid
-                accumColor += getBackground(dir, uShowGrid) * (1.0 - accumDensity);
-            }
+            if (accumDensity < 1.0 && !hitHorizon) accumColor += getBackground(dir, uShowGrid) * (1.0 - accumDensity);
 
             accumColor = vec3(1.0) - exp(-accumColor * 1.5);
-            float gray = dot(accumColor, vec3(0.299, 0.587, 0.114));
-            accumColor = mix(vec3(gray), accumColor, 1.4);
-            accumColor = pow(accumColor, vec3(1.0/2.2));
-
-            gl_FragColor = vec4(accumColor, 1.0);
+            accumColor = mix(vec3(dot(accumColor, vec3(0.299, 0.587, 0.114))), accumColor, 1.4);
+            gl_FragColor = vec4(pow(accumColor, vec3(1.0/2.2)), 1.0);
         }
     </script>
 
@@ -796,13 +545,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const geometry = new THREE.PlaneGeometry(2, 2);
         const uniforms = {
-            uTime: { value: 0 },
-            uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-            uMouse: { value: new THREE.Vector2(0.85, 0.08) }, 
-            uZoom: { value: 12.0 },
-            uShowGrid: { value: 0.0 } // Grid toggle uniform
+            uTime: { value: 0 }, uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            uMouse: { value: new THREE.Vector2(0.85, 0.08) }, uZoom: { value: 12.0 }, uShowGrid: { value: 0.0 } 
         };
 
         const material = new THREE.ShaderMaterial({
@@ -810,127 +555,110 @@
             fragmentShader: document.getElementById('fragmentShader').textContent,
             uniforms: uniforms
         });
+        scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
 
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
+        // --- Feature 4: Modal & Content Database ---
+        function openModal(title, desc, imgUrl) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').textContent = desc;
+            const img = document.getElementById('modal-img');
+            img.style.display = 'block'; img.src = imgUrl;
+            document.getElementById('info-modal').style.display = 'flex';
+        }
 
-        // --- Feature 4: Mini Solar System Setup ---
+        // --- Mini Solar System Setup ---
         const solarScene = new THREE.Scene();
         const solarCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        solarCamera.position.set(0, 40, 80);
-        solarCamera.lookAt(0, 0, 0);
-
-        const ambientLight = new THREE.AmbientLight(0x222222);
-        solarScene.add(ambientLight);
-        const sunLight = new THREE.PointLight(0xffffff, 2, 300);
-        solarScene.add(sunLight);
+        solarCamera.position.set(0, 40, 80); solarCamera.lookAt(0, 0, 0);
+        solarScene.add(new THREE.AmbientLight(0x222222));
+        solarScene.add(new THREE.PointLight(0xffffff, 2, 300));
 
         const planets = [];
         const planetData = [
-            { name: 'Sun', r: 4.0, d: 0, c: 0xffcc00, v: 0 },
-            { name: 'Mercury', r: 0.4, d: 7, c: 0xaaaaaa, v: 2.0 },
-            { name: 'Venus', r: 0.9, d: 11, c: 0xffaa00, v: 1.5 },
-            { name: 'Earth', r: 1.0, d: 16, c: 0x0055ff, v: 1.0 },
-            { name: 'Mars', r: 0.6, d: 21, c: 0xff3300, v: 0.8 },
-            { name: 'Jupiter', r: 2.5, d: 32, c: 0xffaa55, v: 0.4 },
-            { name: 'Saturn', r: 2.1, d: 43, c: 0xeeddcc, v: 0.3 },
-            { name: 'Uranus', r: 1.4, d: 53, c: 0x00aaff, v: 0.2 },
-            { name: 'Neptune', r: 1.3, d: 62, c: 0x0055aa, v: 0.1 }
+            { name: 'Sun', r: 4.0, d: 0, c: 0xffcc00, v: 0, desc: "The Sun is a yellow dwarf star at the center of our solar system, containing 99.8% of the system's mass.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA17137.jpg" },
+            { name: 'Mercury', r: 0.4, d: 7, c: 0xaaaaaa, v: 2.0, desc: "The smallest planet in our solar system and closest to the Sun. It has a rocky surface and no atmosphere.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA11756.jpg" },
+            { name: 'Venus', r: 0.9, d: 11, c: 0xffaa00, v: 1.5, desc: "Venus is Earth's twin in size, but has a thick, toxic atmosphere that traps heat, making it the hottest planet.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00271.jpg" },
+            { name: 'Earth', r: 1.0, d: 16, c: 0x0055ff, v: 1.0, desc: "Our home planet is the only place we know of so far that's inhabited by living things.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00122.jpg" },
+            { name: 'Mars', r: 0.6, d: 21, c: 0xff3300, v: 0.8, desc: "The Red Planet is a dusty, cold, desert world with a very thin atmosphere and evidence of ancient water.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA01120.jpg" },
+            { name: 'Jupiter', r: 2.5, d: 32, c: 0xffaa55, v: 0.4, desc: "The largest planet in our solar system, a gas giant famous for its Great Red Spot and dozens of moons.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA21731.jpg" },
+            { name: 'Saturn', r: 2.1, d: 43, c: 0xeeddcc, v: 0.3, desc: "Adorned with a dazzling, complex system of icy rings, Saturn is a massive gas giant.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA14934.jpg" },
+            { name: 'Uranus', r: 1.4, d: 53, c: 0x00aaff, v: 0.2, desc: "An ice giant that rotates on its side. It has a blue-green color from methane in its atmosphere.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00032.jpg" },
+            { name: 'Neptune', r: 1.3, d: 62, c: 0x0055aa, v: 0.1, desc: "Dark, cold, and whipped by supersonic winds, Neptune is the farthest planet from our Sun.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA01140.jpg" }
         ];
+
+        const solarLabelsContainer = document.getElementById('solar-labels-container');
 
         planetData.forEach(p => {
             const geo = new THREE.SphereGeometry(p.r, 32, 32);
             const mat = p.name === 'Sun' ? new THREE.MeshBasicMaterial({ color: p.c }) : new THREE.MeshPhongMaterial({ color: p.c });
             const pMesh = new THREE.Mesh(geo, mat);
-            
             if (p.d > 0) {
-                const orbitGeo = new THREE.RingGeometry(p.d - 0.05, p.d + 0.05, 64);
                 const orbitMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, side: THREE.DoubleSide });
-                const orbit = new THREE.Mesh(orbitGeo, orbitMat);
-                orbit.rotation.x = Math.PI / 2;
-                solarScene.add(orbit);
+                const orbit = new THREE.Mesh(new THREE.RingGeometry(p.d - 0.05, p.d + 0.05, 64), orbitMat);
+                orbit.rotation.x = Math.PI / 2; solarScene.add(orbit);
             }
             solarScene.add(pMesh);
-            planets.push({ mesh: pMesh, data: p, angle: Math.random() * Math.PI * 2 });
+            
+            // Create Interactive Solar Labels
+            const lbl = document.createElement('div');
+            lbl.className = 'floating-label planet-label';
+            lbl.textContent = p.name;
+            lbl.onclick = () => openModal(p.name, p.desc, p.img);
+            solarLabelsContainer.appendChild(lbl);
+            
+            planets.push({ mesh: pMesh, data: p, angle: Math.random() * Math.PI * 2, labelEl: lbl });
         });
+
+        // Clickable Black Hole Labels
+        document.getElementById('lbl-event-horizon').onclick = () => openModal('Event Horizon', 'The boundary marking the limits of a black hole. At this point, the escape velocity is equal to the speed of light. Nothing, not even light, can escape once it crosses this invisible threshold.', 'https://media.nature.com/lw767/magazine-assets/d41586-019-01155-0/d41586-019-01155-0_16616086.jpg');
+        document.getElementById('lbl-photon-sphere').onclick = () => openModal('Photon Sphere', 'A region slightly outside the event horizon where gravity is so strong that light photons are forced to travel in orbits. If you stood here, you could theoretically see the back of your own head.', 'https://www.nasa.gov/wp-content/uploads/2023/03/blackhole.jpeg');
+        document.getElementById('lbl-accretion').onclick = () => openModal('Accretion Disk', 'A rotating disk of matter formed by accretion around a massive body. Friction causes the matter to become superheated, emitting X-rays and blinding visible light.', 'https://www.nasa.gov/wp-content/uploads/2023/03/blackhole.jpeg');
+        document.getElementById('lbl-singularity').onclick = () => openModal('Singularity', 'The absolute center of a black hole. Here, matter is crushed to infinite density, and the laws of physics as we know them break down entirely.', 'https://science.nasa.gov/wp-content/uploads/2023/09/black-hole-concept.jpg');
+        document.getElementById('lbl-jet').onclick = () => openModal('Relativistic Jet', 'Powerful beams of ionized matter accelerated along the magnetic poles of a black hole. These jets travel at nearly the speed of light and can extend for thousands of light-years into space.', 'https://science.nasa.gov/wp-content/uploads/2023/09/black-hole-concept.jpg');
 
         // --- System Engine Init ---
         let isSimulationRunning = false;
         const clock = new THREE.Clock();
-
         document.getElementById('btn-start-sim').addEventListener('click', () => {
-            const overlay = document.getElementById('start-overlay');
-            overlay.style.opacity = '0';
+            const overlay = document.getElementById('start-overlay'); overlay.style.opacity = '0';
             setTimeout(() => overlay.style.display = 'none', 1000);
-            
-            isSimulationRunning = true;
-            clock.getDelta(); // Clear time delta
+            isSimulationRunning = true; clock.getDelta();
         });
 
-        // --- Core Interactions (Mouse/Touch) ---
+        // --- Core Interactions ---
         let currentMode = 'manual';
         let orbitSettings = { speed: 0.05, radius: 20.0, height: 0.10 };
-        let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
+        let isDragging = false; let previousMousePosition = { x: 0, y: 0 };
         
-        const setManualMode = () => {
-            currentMode = 'manual';
-            updateMenuUI('btn-manual');
-            document.getElementById('orbit-controls-panel').classList.remove('visible');
-        };
-
-        const onDown = (x, y) => {
-            isDragging = true;
-            previousMousePosition = { x, y };
-            if(currentMode === 'orbit' || currentMode === 'travel') setManualMode(); 
-        };
-        
+        const setManualMode = () => { currentMode = 'manual'; updateMenuUI('btn-manual'); document.getElementById('orbit-controls-panel').classList.remove('visible'); };
+        const onDown = (x, y) => { isDragging = true; previousMousePosition = { x, y }; if(currentMode === 'orbit' || currentMode === 'travel') setManualMode(); };
         const onMove = (x, y) => {
             if (isDragging) {
                 const deltaMove = { x: x - previousMousePosition.x, y: y - previousMousePosition.y };
-                uniforms.uMouse.value.x += deltaMove.x * 0.005;
-                uniforms.uMouse.value.y += deltaMove.y * 0.005;
-                uniforms.uMouse.value.y = Math.max(-0.49, Math.min(0.49, uniforms.uMouse.value.y));
+                uniforms.uMouse.value.x += deltaMove.x * 0.005; uniforms.uMouse.value.y = Math.max(-0.49, Math.min(0.49, uniforms.uMouse.value.y + deltaMove.y * 0.005));
                 previousMousePosition = { x, y };
             }
         };
         const onUp = () => { isDragging = false; };
 
-        renderer.domElement.addEventListener('mousedown', (e) => onDown(e.offsetX, e.offsetY));
-        renderer.domElement.addEventListener('mousemove', (e) => onMove(e.offsetX, e.offsetY));
-        renderer.domElement.addEventListener('mouseup', onUp);
-        renderer.domElement.addEventListener('touchstart', (e) => onDown(e.touches[0].clientX, e.touches[0].clientY));
-        renderer.domElement.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY));
-        renderer.domElement.addEventListener('touchend', onUp);
+        renderer.domElement.addEventListener('mousedown', (e) => onDown(e.offsetX, e.offsetY)); renderer.domElement.addEventListener('mousemove', (e) => onMove(e.offsetX, e.offsetY)); renderer.domElement.addEventListener('mouseup', onUp);
+        renderer.domElement.addEventListener('touchstart', (e) => onDown(e.touches[0].clientX, e.touches[0].clientY)); renderer.domElement.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY)); renderer.domElement.addEventListener('touchend', onUp);
+        renderer.domElement.addEventListener('wheel', (e) => { if(currentMode === 'orbit' || currentMode === 'travel') setManualMode(); uniforms.uZoom.value = Math.max(2.5, Math.min(50.0, uniforms.uZoom.value + e.deltaY * 0.01)); });
 
-        renderer.domElement.addEventListener('wheel', (e) => {
-            if(currentMode === 'orbit' || currentMode === 'travel') setManualMode();
-            uniforms.uZoom.value += e.deltaY * 0.01;
-            uniforms.uZoom.value = Math.max(2.5, Math.min(50.0, uniforms.uZoom.value));
-        });
-
-        // --- Button Controls ---
-        const moveStep = 0.05;
-        let keys = { up: false, down: false, left: false, right: false, in: false, out: false };
-
+        const moveStep = 0.05; let keys = { up: false, down: false, left: false, right: false, in: false, out: false };
         const bindBtn = (id, key) => {
-            const btn = document.getElementById(id);
-            const triggerManual = () => { keys[key] = true; if(currentMode !== 'manual') setManualMode(); };
-            btn.addEventListener('mousedown', triggerManual);
-            btn.addEventListener('mouseup', () => keys[key] = false);
-            btn.addEventListener('mouseleave', () => keys[key] = false);
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerManual(); });
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+            const btn = document.getElementById(id); const trig = () => { keys[key] = true; if(currentMode !== 'manual') setManualMode(); };
+            btn.addEventListener('mousedown', trig); btn.addEventListener('mouseup', () => keys[key] = false); btn.addEventListener('mouseleave', () => keys[key] = false);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); trig(); }); btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
         };
         bindBtn('btn-up', 'up'); bindBtn('btn-down', 'down'); bindBtn('btn-left', 'left'); bindBtn('btn-right', 'right'); bindBtn('btn-in', 'in'); bindBtn('btn-out', 'out');
 
         // --- UI & Menu Management ---
-        const menuToggle = document.getElementById('menu-toggle');
-        const glassMenu = document.getElementById('glass-menu');
-        const orbitPanel = document.getElementById('orbit-controls-panel');
-        const journeyPanel = document.getElementById('journey-panel');
+        const menuToggle = document.getElementById('menu-toggle'); const glassMenu = document.getElementById('glass-menu');
+        const orbitPanel = document.getElementById('orbit-controls-panel'); const journeyPanel = document.getElementById('journey-panel');
 
-        let showTimeDilation = true;
+        // Note: Time Dilation is now disabled by default for performance
+        let showTimeDilation = false;
         document.getElementById('btn-toggle-time').addEventListener('click', () => {
             showTimeDilation = !showTimeDilation;
             document.getElementById('time-dilation-panel').style.display = showTimeDilation ? 'block' : 'none';
@@ -938,305 +666,144 @@
             document.getElementById('toggle-time-text').textContent = showTimeDilation ? 'Disable Time Dilation' : 'Enable Time Dilation';
         });
 
-        // Grid Toggle logic
         let showGrid = false;
         document.getElementById('btn-toggle-grid').addEventListener('click', () => {
-            showGrid = !showGrid;
-            uniforms.uShowGrid.value = showGrid ? 1.0 : 0.0;
+            showGrid = !showGrid; uniforms.uShowGrid.value = showGrid ? 1.0 : 0.0;
             document.getElementById('toggle-grid-icon').textContent = showGrid ? 'grid_on' : 'grid_off';
             document.getElementById('toggle-grid-text').textContent = showGrid ? 'Hide Spacetime Grid' : 'Show Spacetime Grid';
         });
 
-        menuToggle.addEventListener('click', () => {
-            const isOpen = glassMenu.classList.contains('open');
-            glassMenu.classList.toggle('open');
-            document.getElementById('menu-arrow').textContent = isOpen ? 'keyboard_arrow_down' : 'keyboard_arrow_up';
-        });
+        menuToggle.addEventListener('click', () => { const isOpen = glassMenu.classList.toggle('open'); document.getElementById('menu-arrow').textContent = isOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'; });
+        function updateMenuUI(activeId) { ['btn-manual', 'btn-orbit', 'btn-travel', 'btn-journey', 'btn-solar'].forEach(id => document.getElementById(id).classList.remove('active')); if(activeId) document.getElementById(activeId).classList.add('active'); }
 
-        function updateMenuUI(activeId) {
-            ['btn-manual', 'btn-orbit', 'btn-travel', 'btn-journey', 'btn-solar'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.classList.remove('active');
-            });
-            if(activeId) document.getElementById(activeId).classList.add('active');
-        }
+        document.getElementById('btn-manual').addEventListener('click', () => { currentMode = 'manual'; updateMenuUI('btn-manual'); orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible'); });
+        document.getElementById('btn-solar').addEventListener('click', () => { currentMode = 'solar_system'; updateMenuUI('btn-solar'); orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible'); glassMenu.classList.remove('open'); });
+        document.getElementById('btn-orbit').addEventListener('click', () => { currentMode = 'orbit'; updateMenuUI('btn-orbit'); orbitPanel.classList.add('visible'); journeyPanel.classList.remove('visible'); });
+        document.getElementById('btn-travel').addEventListener('click', () => { currentMode = 'travel'; updateMenuUI('btn-travel'); orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible'); if(uniforms.uZoom.value > 20.0) uniforms.uZoom.value = 20.0; });
+        document.getElementById('btn-journey').addEventListener('click', () => { currentMode = 'journey'; updateMenuUI('btn-journey'); orbitPanel.classList.remove('visible'); journeyPanel.classList.add('visible'); journeySettings.distanceLy = 26000; uniforms.uZoom.value = 50.0; });
+        document.getElementById('btn-reset').addEventListener('click', () => { currentMode = 'manual'; updateMenuUI('btn-manual'); orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible'); uniforms.uZoom.value = 12.0; uniforms.uMouse.value.set(0.85, 0.08); glassMenu.classList.remove('open'); });
 
-        document.getElementById('btn-manual').addEventListener('click', () => {
-            currentMode = 'manual'; updateMenuUI('btn-manual');
-            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
-        });
-        document.getElementById('btn-solar').addEventListener('click', () => {
-            currentMode = 'solar_system'; updateMenuUI('btn-solar');
-            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
-            glassMenu.classList.remove('open'); document.getElementById('menu-arrow').textContent = 'keyboard_arrow_down';
-        });
-        document.getElementById('btn-orbit').addEventListener('click', () => {
-            currentMode = 'orbit'; updateMenuUI('btn-orbit');
-            orbitPanel.classList.add('visible'); journeyPanel.classList.remove('visible');
-        });
-        document.getElementById('btn-travel').addEventListener('click', () => {
-            currentMode = 'travel'; updateMenuUI('btn-travel');
-            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
-            if(uniforms.uZoom.value > 20.0) uniforms.uZoom.value = 20.0;
-        });
-        document.getElementById('btn-journey').addEventListener('click', () => {
-            currentMode = 'journey'; updateMenuUI('btn-journey');
-            orbitPanel.classList.remove('visible'); journeyPanel.classList.add('visible');
-            journeySettings.distanceLy = 26000; journeySettings.traveledLy = 0; journeySettings.shipTimeYrs = 0;
-            uniforms.uZoom.value = 50.0;
-        });
-        document.getElementById('btn-reset').addEventListener('click', () => {
-            currentMode = 'manual'; updateMenuUI('btn-manual');
-            orbitPanel.classList.remove('visible'); journeyPanel.classList.remove('visible');
-            uniforms.uZoom.value = 12.0; uniforms.uMouse.value.set(0.85, 0.08);
-            glassMenu.classList.remove('open'); document.getElementById('menu-arrow').textContent = 'keyboard_arrow_down';
-        });
-
-        const bindSlider = (id, param, displayId) => {
-            document.getElementById(id).addEventListener('input', (e) => {
-                orbitSettings[param] = parseFloat(e.target.value);
-                document.getElementById(displayId).textContent = orbitSettings[param].toFixed(2);
-            });
-        };
+        const bindSlider = (id, param, displayId) => { document.getElementById(id).addEventListener('input', (e) => { orbitSettings[param] = parseFloat(e.target.value); document.getElementById(displayId).textContent = orbitSettings[param].toFixed(2); }); };
         bindSlider('orbit-speed', 'speed', 'val-speed'); bindSlider('orbit-radius', 'radius', 'val-radius'); bindSlider('orbit-height', 'height', 'val-height');
 
-        // --- Feature Variables ---
         let earthTimeSecs = 0; let bhTimeSecs = 0; const RS_MATH = 1.0;
         let journeySettings = { distanceLy: 26000, traveledLy: 0, speedC: 0.0001, shipTimeYrs: 0 };
-        
-        const elEarthTime = document.getElementById('earth-time');
-        const elBhTime = document.getElementById('bh-time');
-        const elDilation = document.getElementById('dilation-factor');
-        
-        const jLoc = document.getElementById('j-loc'); const jDist = document.getElementById('j-dist');
-        const jSpeed = document.getElementById('j-speed'); const jShipTime = document.getElementById('j-ship-time');
-        const jEta = document.getElementById('j-eta');
+        const elEarthTime = document.getElementById('earth-time'), elBhTime = document.getElementById('bh-time'), elDilation = document.getElementById('dilation-factor');
+        const jLoc = document.getElementById('j-loc'), jDist = document.getElementById('j-dist'), jSpeed = document.getElementById('j-speed'), jShipTime = document.getElementById('j-ship-time'), jEta = document.getElementById('j-eta');
 
         document.getElementById('journey-speed-slider').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            if(val <= 1) journeySettings.speedC = 0.0001 + val * 0.0099;
-            else if(val <= 2) journeySettings.speedC = 0.01 + (val-1) * 0.09;
-            else if(val <= 3) journeySettings.speedC = 0.1 + (val-2) * 0.899;
-            else journeySettings.speedC = Math.pow(10, val - 3);
+            if(val <= 1) journeySettings.speedC = 0.0001 + val * 0.0099; else if(val <= 2) journeySettings.speedC = 0.01 + (val-1) * 0.09;
+            else if(val <= 3) journeySettings.speedC = 0.1 + (val-2) * 0.899; else journeySettings.speedC = Math.pow(10, val - 3);
         });
 
-        function formatTime(seconds) {
-            if (!isFinite(seconds) || seconds > 1e12) return "Infinity";
-            let y = Math.floor(seconds / (3600*24*365)); let d = Math.floor((seconds % (3600*24*365)) / (3600*24));
-            let h = Math.floor((seconds % (3600*24)) / 3600); let m = Math.floor((seconds % 3600) / 60); let s = (seconds % 60).toFixed(1);
-            if (y > 0) return `${y}y ${d}d ${h}h`; if (d > 0) return `${d}d ${h}h ${m}m`;
-            if (h > 0) return `${h}h ${m}m ${s}s`; if (m > 0) return `${m}m ${s}s`; return `${s}s`;
-        }
+        function formatTime(s) { if (!isFinite(s) || s > 1e12) return "Infinity"; let y = Math.floor(s/(3600*24*365)), d = Math.floor((s%(3600*24*365))/(3600*24)), h = Math.floor((s%(3600*24))/3600), m = Math.floor((s%3600)/60); s = (s%60).toFixed(1); return y>0 ? `${y}y ${d}d ${h}h` : d>0 ? `${d}d ${h}h ${m}m` : h>0 ? `${h}h ${m}m ${s}s` : m>0 ? `${m}m ${s}s` : `${s}s`; }
+        function formatYrs(y) { return y < 1 ? (y * 365).toFixed(1) + " days" : y > 1000 ? (y/1000).toFixed(1) + "k yrs" : y.toFixed(2) + " yrs"; }
 
-        function formatYrs(y) {
-            if (y < 1) return (y * 365).toFixed(1) + " days";
-            if (y > 1000) return (y/1000).toFixed(1) + "k yrs";
-            return y.toFixed(2) + " yrs";
-        }
+        const facts = ["Black holes do not suck everything in like vacuum cleaners.", "The first image of a black hole was released in 2019.", "Our galaxy contains a supermassive black hole at its center.", "Light itself bends around a black hole.", "Some black holes are billions of times more massive than the Sun."];
+        setInterval(() => { document.getElementById('random-fact').textContent = facts[Math.floor(Math.random() * facts.length)]; }, 8000);
 
-        // Feature 5: Info and Facts
-        const facts = [
-            "Black holes do not suck everything in like vacuum cleaners.",
-            "The first image of a black hole was released in 2019.",
-            "Our galaxy contains a supermassive black hole at its center.",
-            "Light itself bends around a black hole.",
-            "Some black holes are billions of times more massive than the Sun."
-        ];
-        setInterval(() => {
-            document.getElementById('random-fact').textContent = facts[Math.floor(Math.random() * facts.length)];
-        }, 8000);
+        const elDistStatus = document.getElementById('info-distance-status'), elDistDesc = document.getElementById('info-distance-desc');
+        const elLabels = { singularity: document.getElementById('lbl-singularity'), horizon: document.getElementById('lbl-event-horizon'), photon: document.getElementById('lbl-photon-sphere'), accretion: document.getElementById('lbl-accretion'), jet: document.getElementById('lbl-jet') };
 
-        const elDistStatus = document.getElementById('info-distance-status');
-        const elDistDesc = document.getElementById('info-distance-desc');
-        const elLabels = {
-            singularity: document.getElementById('lbl-singularity'),
-            horizon: document.getElementById('lbl-event-horizon'),
-            photon: document.getElementById('lbl-photon-sphere'),
-            accretion: document.getElementById('lbl-accretion')
-        };
-
-        // Project 3D to 2D
-        function getScreenCoords(p3, uZoom, uMouseX, uMouseY, width, height) {
-            const cx = Math.cos(uMouseX * 6.28), sx = Math.sin(uMouseX * 6.28);
-            const cy = Math.cos(uMouseY * 3.14), sy = Math.sin(uMouseY * 3.14);
-            
-            let ro = { x: 0, y: uZoom * -sy, z: uZoom * cy }; 
-            ro = { x: ro.z * sx + ro.x * cx, y: ro.y, z: ro.z * cx - ro.x * sx };
-            
-            let len = Math.sqrt(ro.x*ro.x + ro.y*ro.y + ro.z*ro.z);
-            let cw = { x: -ro.x/len, y: -ro.y/len, z: -ro.z/len };
-            let cp = { x: 0, y: 1, z: 0 };
-            
-            let cu = { x: cw.y*cp.z - cw.z*cp.y, y: cw.z*cp.x - cw.x*cp.z, z: cw.x*cp.y - cw.y*cp.x };
-            let cuLen = Math.sqrt(cu.x*cu.x + cu.y*cu.y + cu.z*cu.z);
-            cu = { x: cu.x/cuLen, y: cu.y/cuLen, z: cu.z/cuLen };
-            let cv = { x: cu.y*cw.z - cu.z*cw.y, y: cu.z*cw.x - cu.x*cw.z, z: cu.x*cw.y - cu.y*cw.x };
-            
-            let dir = { x: p3.x - ro.x, y: p3.y - ro.y, z: p3.z - ro.z };
-            let dotCw = dir.x*cw.x + dir.y*cw.y + dir.z*cw.z;
-            
-            if (dotCw <= 0.1) return null; // Behind camera
-            
-            let t = 1.4 / dotCw; 
-            let planePos = { x: dir.x*t, y: dir.y*t, z: dir.z*t };
-            
-            let uvX = (planePos.x*cu.x + planePos.y*cu.y + planePos.z*cu.z) / (width / height);
-            let uvY = planePos.x*cv.x + planePos.y*cv.y + planePos.z*cv.z;
-            
-            return { x: (uvX * 0.5 + 0.5) * width, y: (-uvY * 0.5 + 0.5) * height };
+        function getScreenCoords(p3, uZoom, uMouseX, uMouseY, w, h) {
+            const cx = Math.cos(uMouseX * 6.28), sx = Math.sin(uMouseX * 6.28), cy = Math.cos(uMouseY * 3.14), sy = Math.sin(uMouseY * 3.14);
+            let ro = { x: 0, y: uZoom * -sy, z: uZoom * cy }; ro = { x: ro.z * sx + ro.x * cx, y: ro.y, z: ro.z * cx - ro.x * sx };
+            let len = Math.sqrt(ro.x*ro.x + ro.y*ro.y + ro.z*ro.z), cw = { x: -ro.x/len, y: -ro.y/len, z: -ro.z/len }, cp = { x: 0, y: 1, z: 0 };
+            let cu = { x: cw.y*cp.z - cw.z*cp.y, y: cw.z*cp.x - cw.x*cp.z, z: cw.x*cp.y - cw.y*cp.x }; let cuLen = Math.sqrt(cu.x*cu.x + cu.y*cu.y + cu.z*cu.z); cu = { x: cu.x/cuLen, y: cu.y/cuLen, z: cu.z/cuLen };
+            let cv = { x: cu.y*cw.z - cu.z*cw.y, y: cu.z*cw.x - cu.x*cw.z, z: cu.x*cw.y - cu.y*cw.x }, dir = { x: p3.x - ro.x, y: p3.y - ro.y, z: p3.z - ro.z };
+            let dotCw = dir.x*cw.x + dir.y*cw.y + dir.z*cw.z; if (dotCw <= 0.1) return null;
+            let t = 1.4 / dotCw, planePos = { x: dir.x*t, y: dir.y*t, z: dir.z*t };
+            return { x: ((planePos.x*cu.x + planePos.y*cu.y + planePos.z*cu.z) / (w/h) * 0.5 + 0.5) * w, y: (-(planePos.x*cv.x + planePos.y*cv.y + planePos.z*cv.z) * 0.5 + 0.5) * h };
         }
 
         // --- Main Render Loop ---
         function animate() {
             requestAnimationFrame(animate);
             if (!isSimulationRunning) return;
-
             const delta = clock.getDelta();
 
-            // Solar System Render
             if (currentMode === 'solar_system') {
                 planets.forEach(p => {
-                    if (p.data.d > 0) {
-                        p.angle += p.data.v * delta * 0.5;
-                        p.mesh.position.x = Math.cos(p.angle) * p.data.d;
-                        p.mesh.position.z = Math.sin(p.angle) * p.data.d;
-                    }
+                    if (p.data.d > 0) { p.angle += p.data.v * delta * 0.5; p.mesh.position.x = Math.cos(p.angle) * p.data.d; p.mesh.position.z = Math.sin(p.angle) * p.data.d; }
+                    
+                    // Track 2D Planet labels
+                    const pos3D = p.mesh.position.clone();
+                    pos3D.project(solarCamera);
+                    if (pos3D.z < 1) { // In front of camera
+                        p.labelEl.style.left = (pos3D.x * .5 + .5) * window.innerWidth + 'px';
+                        p.labelEl.style.top = (-(pos3D.y * .5) + .5) * window.innerHeight + 'px';
+                        p.labelEl.style.opacity = '1';
+                    } else { p.labelEl.style.opacity = '0'; }
                 });
                 
-                solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * 80;
-                solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * 80;
-                solarCamera.position.y = 40 + (uniforms.uMouse.value.y * 100);
-                solarCamera.lookAt(0, 0, 0);
-
+                solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * 80; solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * 80; solarCamera.position.y = 40 + (uniforms.uMouse.value.y * 100); solarCamera.lookAt(0, 0, 0);
                 renderer.render(solarScene, solarCamera);
                 
-                if (keys.left) uniforms.uMouse.value.x -= moveStep * 10 * delta;
-                if (keys.right) uniforms.uMouse.value.x += moveStep * 10 * delta;
-                if (keys.up) uniforms.uMouse.value.y = Math.min(0.8, uniforms.uMouse.value.y + moveStep * 10 * delta);
-                if (keys.down) uniforms.uMouse.value.y = Math.max(-0.2, uniforms.uMouse.value.y - moveStep * 10 * delta);
+                if (keys.left) uniforms.uMouse.value.x -= moveStep * 10 * delta; if (keys.right) uniforms.uMouse.value.x += moveStep * 10 * delta;
+                if (keys.up) uniforms.uMouse.value.y = Math.min(0.8, uniforms.uMouse.value.y + moveStep * 10 * delta); if (keys.down) uniforms.uMouse.value.y = Math.max(-0.2, uniforms.uMouse.value.y - moveStep * 10 * delta);
                 
-                // Hide Labels/Info in Solar Mode
-                document.getElementById('labels-container').style.display = 'none';
-                document.getElementById('info-panel').style.display = 'none';
-                return; 
+                document.getElementById('bh-labels-container').style.display = 'none'; document.getElementById('solar-labels-container').style.display = 'block'; document.getElementById('info-panel').style.display = 'none'; return; 
             }
 
-            // Raymarcher Render
             uniforms.uTime.value += delta;
-
-            // Info Panel & Labels Update
+            
             if (currentMode !== 'journey' || journeySettings.distanceLy <= 25500) {
                 const dist = uniforms.uZoom.value;
-                document.getElementById('labels-container').style.display = 'block';
-                document.getElementById('info-panel').style.display = 'flex';
+                document.getElementById('bh-labels-container').style.display = 'block'; document.getElementById('solar-labels-container').style.display = 'none';
+                if(document.getElementById('info-panel').style.display !== 'none' && !document.getElementById('info-panel').dataset.closed) document.getElementById('info-panel').style.display = 'flex';
 
-                if (dist > 30) {
-                    elDistStatus.textContent = "Far Away"; elDistDesc.textContent = "Observing from a safe distance. Gravitational effects are weak.";
-                } else if (dist > 5) {
-                    elDistStatus.textContent = "Approaching"; elDistDesc.textContent = "Light bends noticeably. Gravitational lensing is highly visible.";
-                } else if (dist > 1.2) {
-                    elDistStatus.textContent = "Near Event Horizon"; elDistDesc.textContent = "Time slows dramatically compared to Earth. Escape velocity nears 'c'.";
-                } else {
-                    elDistStatus.textContent = "Inside (Simulation)"; elDistDesc.textContent = "Event horizon crossed. According to Relativity, no information can escape.";
-                }
+                if (dist > 30) { elDistStatus.textContent = "Far Away"; elDistDesc.textContent = "Observing from a safe distance. Gravitational effects are weak."; }
+                else if (dist > 5) { elDistStatus.textContent = "Approaching"; elDistDesc.textContent = "Light bends noticeably. Gravitational lensing is highly visible."; }
+                else if (dist > 1.2) { elDistStatus.textContent = "Near Event Horizon"; elDistDesc.textContent = "Time slows dramatically compared to Earth. Escape velocity nears 'c'."; }
+                else { elDistStatus.textContent = "Inside (Simulation)"; elDistDesc.textContent = "Event horizon crossed. According to Relativity, no information can escape."; }
 
-                const pts = { singularity: {x:0, y:0, z:0}, horizon: {x:1.0, y:0.1, z:0}, photon: {x:1.5, y:-0.5, z:0}, accretion: {x:6.0, y:0, z:0} };
-                
+                const pts = { singularity: {x:0, y:0, z:0}, horizon: {x:1.0, y:0.1, z:0}, photon: {x:1.5, y:-0.5, z:0}, accretion: {x:6.0, y:0, z:0}, jet: {x:0, y:2.5, z:0} };
                 for (let key in pts) {
                     const coords = getScreenCoords(pts[key], uniforms.uZoom.value, uniforms.uMouse.value.x, uniforms.uMouse.value.y, window.innerWidth, window.innerHeight);
                     if (coords && coords.x > 0 && coords.x < window.innerWidth && coords.y > 0 && coords.y < window.innerHeight) {
-                        elLabels[key].style.left = coords.x + 'px';
-                        elLabels[key].style.top = coords.y + 'px';
-                        elLabels[key].style.opacity = dist < 2 && key === 'accretion' ? '0' : '0.8';
-                    } else {
-                        elLabels[key].style.opacity = '0';
-                    }
+                        elLabels[key].style.left = coords.x + 'px'; elLabels[key].style.top = coords.y + 'px'; elLabels[key].style.opacity = (dist < 2 && (key === 'accretion' || key === 'jet')) ? '0' : '0.8';
+                    } else elLabels[key].style.opacity = '0';
                 }
-            } else {
-                document.getElementById('labels-container').style.display = 'none';
-                document.getElementById('info-panel').style.display = 'none';
-            }
+            } else { document.getElementById('bh-labels-container').style.display = 'none'; document.getElementById('solar-labels-container').style.display = 'none'; document.getElementById('info-panel').style.display = 'none'; }
 
-            // Time Dilation Math
             if (showTimeDilation) {
-                const r = Math.max(RS_MATH + 0.0001, uniforms.uZoom.value);
-                const dilationFactor = 1.0 / Math.sqrt(1.0 - RS_MATH / r);
-                bhTimeSecs += delta; 
-                earthTimeSecs += delta * dilationFactor;
-
+                const r = Math.max(RS_MATH + 0.0001, uniforms.uZoom.value); const dilationFactor = 1.0 / Math.sqrt(1.0 - RS_MATH / r);
+                bhTimeSecs += delta; earthTimeSecs += delta * dilationFactor;
                 elDilation.textContent = 'x' + (dilationFactor > 1000 ? dilationFactor.toExponential(2) : dilationFactor.toFixed(2));
-                elEarthTime.textContent = formatTime(earthTimeSecs);
-                elBhTime.textContent = formatTime(bhTimeSecs);
+                elEarthTime.textContent = formatTime(earthTimeSecs); elBhTime.textContent = formatTime(bhTimeSecs);
             }
 
-            // Camera Manipulations
-            if (keys.left) uniforms.uMouse.value.x -= moveStep * 20 * delta;
-            if (keys.right) uniforms.uMouse.value.x += moveStep * 20 * delta;
-            if (keys.up) uniforms.uMouse.value.y = Math.min(0.49, uniforms.uMouse.value.y + moveStep * 20 * delta);
-            if (keys.down) uniforms.uMouse.value.y = Math.max(-0.49, uniforms.uMouse.value.y - moveStep * 20 * delta);
-            if (keys.in) uniforms.uZoom.value = Math.max(2.5, uniforms.uZoom.value - 10.0 * delta);
-            if (keys.out) uniforms.uZoom.value = Math.min(50.0, uniforms.uZoom.value + 10.0 * delta);
+            if (keys.left) uniforms.uMouse.value.x -= moveStep * 20 * delta; if (keys.right) uniforms.uMouse.value.x += moveStep * 20 * delta;
+            if (keys.up) uniforms.uMouse.value.y = Math.min(0.49, uniforms.uMouse.value.y + moveStep * 20 * delta); if (keys.down) uniforms.uMouse.value.y = Math.max(-0.49, uniforms.uMouse.value.y - moveStep * 20 * delta);
+            if (keys.in) uniforms.uZoom.value = Math.max(2.5, uniforms.uZoom.value - 10.0 * delta); if (keys.out) uniforms.uZoom.value = Math.min(50.0, uniforms.uZoom.value + 10.0 * delta);
 
             if (currentMode === 'orbit') {
                 uniforms.uZoom.value += (orbitSettings.radius - uniforms.uZoom.value) * 1.5 * delta;
                 uniforms.uMouse.value.y += (orbitSettings.height - uniforms.uMouse.value.y) * 1.5 * delta;
                 uniforms.uMouse.value.x += orbitSettings.speed * delta;
             } else if (currentMode === 'journey') {
-                const v = journeySettings.speedC;
-                const effectiveV = Math.min(v, 0.999999);
-                const gamma = 1.0 / Math.sqrt(1.0 - effectiveV * effectiveV);
-                const simSpeed = 10; 
-                const travelLy = v * delta * simSpeed;
-                
-                if (journeySettings.distanceLy > 0.1) {
-                    journeySettings.distanceLy -= travelLy;
-                    journeySettings.traveledLy += travelLy;
-                    journeySettings.shipTimeYrs += (travelLy / effectiveV) / gamma;
-                }
+                const v = journeySettings.speedC, effectiveV = Math.min(v, 0.999999), gamma = 1.0 / Math.sqrt(1.0 - effectiveV * effectiveV), travelLy = v * delta * 10;
+                if (journeySettings.distanceLy > 0.1) { journeySettings.distanceLy -= travelLy; journeySettings.traveledLy += travelLy; journeySettings.shipTimeYrs += (travelLy / effectiveV) / gamma; }
                 if (journeySettings.distanceLy < 0) journeySettings.distanceLy = 0;
-
                 jLoc.textContent = journeySettings.distanceLy > 25500 ? 'Solar System' : (journeySettings.distanceLy > 100 ? 'Deep Space' : (journeySettings.distanceLy > 1 ? 'Approaching' : 'Arrived'));
                 jDist.textContent = journeySettings.distanceLy > 1000 ? (journeySettings.distanceLy/1000).toFixed(1) + 'k ly' : journeySettings.distanceLy.toFixed(2) + ' ly';
-                jSpeed.textContent = (v > 1 ? v.toFixed(0) + ' c (Warp)' : v.toFixed(5) + ' c');
-                jShipTime.textContent = formatYrs(journeySettings.shipTimeYrs);
-                jEta.textContent = formatYrs((journeySettings.distanceLy / v) / gamma);
+                jSpeed.textContent = (v > 1 ? v.toFixed(0) + ' c (Warp)' : v.toFixed(5) + ' c'); jShipTime.textContent = formatYrs(journeySettings.shipTimeYrs); jEta.textContent = formatYrs((journeySettings.distanceLy / v) / gamma);
 
                 if (journeySettings.distanceLy > 25500) {
                     const progress = (26000 - journeySettings.distanceLy) / 500;
-                    planets.forEach(p => { if (p.data.d > 0) p.angle += p.data.v * delta * 5.0; });
-                    planets.forEach(p => {
-                        if (p.data.d > 0) {
-                            p.mesh.position.x = Math.cos(p.angle) * p.data.d;
-                            p.mesh.position.z = Math.sin(p.angle) * p.data.d;
-                        }
-                    });
-                    solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * (80 + progress * 800);
-                    solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * (80 + progress * 800);
-                    solarCamera.position.y = 40 + progress * 200 + (uniforms.uMouse.value.y * 100);
-                    solarCamera.lookAt(0, 0, 0);
-                    renderer.render(solarScene, solarCamera);
-                    return; 
-                } else {
-                    uniforms.uZoom.value = 5.0 + (journeySettings.distanceLy / 25500.0) * 45.0;
-                }
+                    planets.forEach(p => { if (p.data.d > 0) p.angle += p.data.v * delta * 5.0; p.mesh.position.x = Math.cos(p.angle) * p.data.d; p.mesh.position.z = Math.sin(p.angle) * p.data.d; });
+                    solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * (80 + progress * 800); solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * (80 + progress * 800); solarCamera.position.y = 40 + progress * 200 + (uniforms.uMouse.value.y * 100); solarCamera.lookAt(0, 0, 0);
+                    renderer.render(solarScene, solarCamera); return; 
+                } else uniforms.uZoom.value = 5.0 + (journeySettings.distanceLy / 25500.0) * 45.0;
             } else if (currentMode === 'travel') {
-                const dist = uniforms.uZoom.value;
-                const speed = 2.0 + (15.0 / (dist * dist + 0.1)); 
-                uniforms.uZoom.value -= speed * delta;
+                uniforms.uZoom.value -= (2.0 + (15.0 / (uniforms.uZoom.value * uniforms.uZoom.value + 0.1))) * delta;
                 if (uniforms.uZoom.value < 1.8) uniforms.uZoom.value = 1.8;
             }
-
             renderer.render(scene, camera);
         }
         
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            uniforms.uResolution.value.x = window.innerWidth;
-            uniforms.uResolution.value.y = window.innerHeight;
-            solarCamera.aspect = window.innerWidth / window.innerHeight;
-            solarCamera.updateProjectionMatrix();
-        });
-
+        window.addEventListener('resize', () => { renderer.setSize(window.innerWidth, window.innerHeight); uniforms.uResolution.value.x = window.innerWidth; uniforms.uResolution.value.y = window.innerHeight; solarCamera.aspect = window.innerWidth / window.innerHeight; solarCamera.updateProjectionMatrix(); });
         animate();
     </script>
 </body>
