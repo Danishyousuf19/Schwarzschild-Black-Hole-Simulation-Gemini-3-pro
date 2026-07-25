@@ -177,12 +177,12 @@
         }
         .info-modal-content {
             background: var(--glass); border: 1px solid var(--primary); padding: 25px;
-            border-radius: 15px; max-width: 450px; width: 90%; color: white; text-align: center;
+            border-radius: 15px; max-width: 450px; width: 90%; color: white; text-align: left;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8); pointer-events: auto;
         }
         .info-modal-img { width: 100%; border-radius: 8px; margin-bottom: 15px; object-fit: cover; max-height: 250px; border: 1px solid rgba(255,255,255,0.1); }
-        .info-modal-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--primary); margin-bottom: 10px; text-transform: uppercase;}
-        .info-modal-desc { font-size: 0.95rem; color: #ddd; line-height: 1.5; margin-bottom: 20px; text-align: justify; }
+        .info-modal-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; text-align: center;}
+        .info-modal-desc { font-size: 0.95rem; color: #ddd; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; font-family: 'Roboto', sans-serif; }
 
         /* On-Screen Controls */
         #controls-area { position: absolute; bottom: 40px; right: 40px; display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); gap: 10px; pointer-events: auto; }
@@ -200,7 +200,7 @@
         /* Desktop Modal */
         #mobile-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center; max-width: 300px; }
-        .modal-btn { background: var(--primary); color: black; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-top: 20px; cursor: pointer; transition: 0.2s; }
+        .modal-btn { background: var(--primary); color: black; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-top: 20px; cursor: pointer; transition: 0.2s; display: block; width: 100%; }
         .modal-btn:hover { background: white; }
 
         /* Start Overlay */
@@ -271,7 +271,7 @@
         <div id="info-panel" class="side-panel">
             <div class="panel-header">
                 <div class="panel-title"><span class="material-symbols-outlined">satellite_alt</span> Telemetry Link</div>
-                <span class="material-symbols-outlined close-btn" onclick="document.getElementById('info-panel').style.display='none'">close</span>
+                <span class="material-symbols-outlined close-btn" onclick="document.getElementById('info-panel').style.display='none'; document.getElementById('info-panel').dataset.closed='true';">close</span>
             </div>
             <div>
                 <div class="info-status" id="info-distance-status">Analyzing Location...</div>
@@ -281,7 +281,7 @@
                 <div style="color: var(--primary); font-size: 0.9rem; font-weight: bold;">Target: Sagittarius A*</div>
                 <div class="info-desc">Located at the center of the Milky Way, about 26,000 ly from Earth. Mass: ~4.3M Suns.</div>
             </div>
-            <div class="fact-box">
+            <div class="fact-box" style="margin-top: 10px;">
                 <strong>Did You Know?</strong><br>
                 <span id="random-fact">Light itself bends around a black hole.</span>
             </div>
@@ -427,13 +427,19 @@
             return f;
         }
 
+        mat3 rotateY(float angle) { float c = cos(angle); float s = sin(angle); return mat3(c, 0, s, 0, 1, 0, -s, 0, c); }
+        mat3 rotateX(float angle) { float c = cos(angle); float s = sin(angle); return mat3(1, 0, 0, 0, c, -s, 0, s, c); }
+
         vec3 getBackground(vec3 dir, float showGrid) {
             float n = fbm(dir.xy * 25.0) * fbm(dir.yz * 25.0);
             float stars = pow(max(0.0, n), 28.0) * 500.0; 
             vec3 bg = vec3(stars);
 
             if (showGrid > 0.5) {
-                float u = atan(dir.z, dir.x) * 4.0; float v = asin(dir.y) * 8.0;
+                // Moving/rotating Spacetime Grid mapped to sphere
+                vec3 gridDir = rotateY(uTime * 0.05) * rotateX(uTime * 0.02) * dir;
+                float u = atan(gridDir.z, gridDir.x) * 4.0; 
+                float v = asin(gridDir.y) * 8.0;
                 vec2 grid = abs(fract(vec2(u, v)) - 0.5);
                 float line = smoothstep(0.44, 0.48, max(grid.x, grid.y));
                 bg += vec3(0.0, 0.6, 1.0) * line * 0.8;
@@ -484,9 +490,6 @@
             float beta = 0.6 * sqrt(RS / r); float cosTheta = dot(dir, vel);
             return pow(1.0 / (1.0 - beta * cosTheta), 4.0); 
         }
-
-        mat3 rotateY(float angle) { float c = cos(angle); float s = sin(angle); return mat3(c, 0, s, 0, 1, 0, -s, 0, c); }
-        mat3 rotateX(float angle) { float c = cos(angle); float s = sin(angle); return mat3(1, 0, 0, 0, c, -s, 0, s, c); }
 
         void main() {
             vec2 uv = (vUv - 0.5) * 2.0; uv.x *= uResolution.x / uResolution.y;
@@ -572,18 +575,42 @@
         solarCamera.position.set(0, 40, 80); solarCamera.lookAt(0, 0, 0);
         solarScene.add(new THREE.AmbientLight(0x222222));
         solarScene.add(new THREE.PointLight(0xffffff, 2, 300));
+        
+        // Solar System Spacetime Grid
+        const ssGrid = new THREE.GridHelper(250, 100, 0x0088ff, 0x002244);
+        ssGrid.position.y = -6;
+        ssGrid.visible = false;
+        solarScene.add(ssGrid);
 
         const planets = [];
         const planetData = [
-            { name: 'Sun', r: 4.0, d: 0, c: 0xffcc00, v: 0, desc: "The Sun is a yellow dwarf star at the center of our solar system, containing 99.8% of the system's mass.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA17137.jpg" },
-            { name: 'Mercury', r: 0.4, d: 7, c: 0xaaaaaa, v: 2.0, desc: "The smallest planet in our solar system and closest to the Sun. It has a rocky surface and no atmosphere.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA11756.jpg" },
-            { name: 'Venus', r: 0.9, d: 11, c: 0xffaa00, v: 1.5, desc: "Venus is Earth's twin in size, but has a thick, toxic atmosphere that traps heat, making it the hottest planet.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00271.jpg" },
-            { name: 'Earth', r: 1.0, d: 16, c: 0x0055ff, v: 1.0, desc: "Our home planet is the only place we know of so far that's inhabited by living things.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00122.jpg" },
-            { name: 'Mars', r: 0.6, d: 21, c: 0xff3300, v: 0.8, desc: "The Red Planet is a dusty, cold, desert world with a very thin atmosphere and evidence of ancient water.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA01120.jpg" },
-            { name: 'Jupiter', r: 2.5, d: 32, c: 0xffaa55, v: 0.4, desc: "The largest planet in our solar system, a gas giant famous for its Great Red Spot and dozens of moons.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA21731.jpg" },
-            { name: 'Saturn', r: 2.1, d: 43, c: 0xeeddcc, v: 0.3, desc: "Adorned with a dazzling, complex system of icy rings, Saturn is a massive gas giant.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA14934.jpg" },
-            { name: 'Uranus', r: 1.4, d: 53, c: 0x00aaff, v: 0.2, desc: "An ice giant that rotates on its side. It has a blue-green color from methane in its atmosphere.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00032.jpg" },
-            { name: 'Neptune', r: 1.3, d: 62, c: 0x0055aa, v: 0.1, desc: "Dark, cold, and whipped by supersonic winds, Neptune is the farthest planet from our Sun.", img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA01140.jpg" }
+            { name: 'Sun', r: 4.0, d: 0, c: 0xffcc00, v: 0, 
+              desc: "Type: Yellow Dwarf (G2V)\nMass: 1.989 × 10³⁰ kg (~333,000x Earth)\nSurface Temp: 5,778 K\nCore Temp: 15 Million K\nComposition: 73% Hydrogen, 25% Helium.\n\nThe Sun holds 99.8% of the solar system's mass. Its gravity is what keeps the planets in orbit instead of flying off into deep space.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA17137.jpg" },
+            { name: 'Mercury', r: 0.4, d: 7, c: 0xaaaaaa, v: 2.0, 
+              desc: "Moons: 0\nGravity: 3.7 m/s²\nDistance from Sun: ~58 million km\nTemp: -173°C to 427°C\n\nSmallest planet, lacks a significant atmosphere, and has a highly cratered surface resembling our Moon.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA11756.jpg" },
+            { name: 'Venus', r: 0.9, d: 11, c: 0xffaa00, v: 1.5, 
+              desc: "Moons: 0\nGravity: 8.87 m/s²\nTemp: 462°C\nAtmosphere: 96% CO₂\n\nVenus suffers from a runaway greenhouse effect, making it the hottest planet despite being further from the sun than Mercury.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00271.jpg" },
+            { name: 'Earth', r: 1.0, d: 16, c: 0x0055ff, v: 1.0, 
+              desc: "Moons: 1 (Luna)\nGravity: 9.807 m/s²\nAtmosphere: 78% Nitrogen, 21% Oxygen\n\nThe only planet known to harbor life. It maintains liquid water on its surface due to perfectly balanced distance and atmosphere.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00122.jpg" },
+            { name: 'Mars', r: 0.6, d: 21, c: 0xff3300, v: 0.8, 
+              desc: "Moons: 2 (Phobos, Deimos)\nGravity: 3.72 m/s²\nTemp: -60°C (Average)\nSurface: Iron Oxide (Rust)\n\nThe Red Planet features the largest volcano in the solar system (Olympus Mons) and evidence of ancient flowing water.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA01120.jpg" },
+            { name: 'Jupiter', r: 2.5, d: 32, c: 0xffaa55, v: 0.4, 
+              desc: "Moons: 95 recognized\nGravity: 24.79 m/s²\nMass: 318x Earth\nFeature: Great Red Spot\n\nA massive gas giant that protects inner planets by deflecting asteroids. Its famous red spot is an anticyclonic storm raging for centuries.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA21731.jpg" },
+            { name: 'Saturn', r: 2.1, d: 43, c: 0xeeddcc, v: 0.3, 
+              desc: "Moons: 146 recognized\nGravity: 10.44 m/s²\nDensity: 0.687 g/cm³ (Less than water)\n\nFamous for its dazzling, complex system of icy rings. It has the most moons of any planet, including Titan, which has liquid methane lakes.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA14934.jpg" },
+            { name: 'Uranus', r: 1.4, d: 53, c: 0x00aaff, v: 0.2, 
+              desc: "Moons: 28\nGravity: 8.69 m/s²\nAxial Tilt: 97.7°\nTemp: -224°C\n\nAn ice giant that literally rolls on its side, likely due to a massive ancient collision. Its blue-green color comes from atmospheric methane.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA00032.jpg" },
+            { name: 'Neptune', r: 1.3, d: 62, c: 0x0055aa, v: 0.1, 
+              desc: "Moons: 16\nGravity: 11.15 m/s²\nWind Speeds: Up to 2,100 km/h\n\nDark, cold, and whipped by supersonic winds, Neptune is the furthest known planet from our Sun. Its largest moon Triton orbits backwards.", 
+              img: "https://science.nasa.gov/wp-content/uploads/2023/09/PIA01140.jpg" }
         ];
 
         const solarLabelsContainer = document.getElementById('solar-labels-container');
@@ -611,9 +638,9 @@
 
         // Clickable Black Hole Labels
         document.getElementById('lbl-event-horizon').onclick = () => openModal('Event Horizon', 'The boundary marking the limits of a black hole. At this point, the escape velocity is equal to the speed of light. Nothing, not even light, can escape once it crosses this invisible threshold.', 'https://media.nature.com/lw767/magazine-assets/d41586-019-01155-0/d41586-019-01155-0_16616086.jpg');
-        document.getElementById('lbl-photon-sphere').onclick = () => openModal('Photon Sphere', 'A region slightly outside the event horizon where gravity is so strong that light photons are forced to travel in orbits. If you stood here, you could theoretically see the back of your own head.', 'https://www.nasa.gov/wp-content/uploads/2023/03/blackhole.jpeg');
-        document.getElementById('lbl-accretion').onclick = () => openModal('Accretion Disk', 'A rotating disk of matter formed by accretion around a massive body. Friction causes the matter to become superheated, emitting X-rays and blinding visible light.', 'https://www.nasa.gov/wp-content/uploads/2023/03/blackhole.jpeg');
-        document.getElementById('lbl-singularity').onclick = () => openModal('Singularity', 'The absolute center of a black hole. Here, matter is crushed to infinite density, and the laws of physics as we know them break down entirely.', 'https://science.nasa.gov/wp-content/uploads/2023/09/black-hole-concept.jpg');
+        document.getElementById('lbl-photon-sphere').onclick = () => openModal('Photon Sphere', 'A region slightly outside the event horizon where gravity is so strong that light photons are forced to travel in circular orbits. If you stood here, you could theoretically see the back of your own head.', 'https://www.nasa.gov/wp-content/uploads/2023/03/blackhole.jpeg');
+        document.getElementById('lbl-accretion').onclick = () => openModal('Accretion Disk', 'A rotating disk of matter formed by accretion around a massive body. Extreme gravitational friction causes the matter to become superheated, emitting X-rays and blinding visible light.', 'https://www.nasa.gov/wp-content/uploads/2023/03/blackhole.jpeg');
+        document.getElementById('lbl-singularity').onclick = () => openModal('Singularity', 'The absolute center of a black hole. Here, matter is crushed to infinite density, and the laws of physics and spacetime as we know them break down entirely.', 'https://science.nasa.gov/wp-content/uploads/2023/09/black-hole-concept.jpg');
         document.getElementById('lbl-jet').onclick = () => openModal('Relativistic Jet', 'Powerful beams of ionized matter accelerated along the magnetic poles of a black hole. These jets travel at nearly the speed of light and can extend for thousands of light-years into space.', 'https://science.nasa.gov/wp-content/uploads/2023/09/black-hole-concept.jpg');
 
         // --- System Engine Init ---
@@ -657,7 +684,6 @@
         const menuToggle = document.getElementById('menu-toggle'); const glassMenu = document.getElementById('glass-menu');
         const orbitPanel = document.getElementById('orbit-controls-panel'); const journeyPanel = document.getElementById('journey-panel');
 
-        // Note: Time Dilation is now disabled by default for performance
         let showTimeDilation = false;
         document.getElementById('btn-toggle-time').addEventListener('click', () => {
             showTimeDilation = !showTimeDilation;
@@ -668,7 +694,9 @@
 
         let showGrid = false;
         document.getElementById('btn-toggle-grid').addEventListener('click', () => {
-            showGrid = !showGrid; uniforms.uShowGrid.value = showGrid ? 1.0 : 0.0;
+            showGrid = !showGrid; 
+            uniforms.uShowGrid.value = showGrid ? 1.0 : 0.0;
+            ssGrid.visible = showGrid; // Toggle 3D grid in solar system mode
             document.getElementById('toggle-grid-icon').textContent = showGrid ? 'grid_on' : 'grid_off';
             document.getElementById('toggle-grid-text').textContent = showGrid ? 'Hide Spacetime Grid' : 'Show Spacetime Grid';
         });
@@ -700,7 +728,7 @@
         function formatTime(s) { if (!isFinite(s) || s > 1e12) return "Infinity"; let y = Math.floor(s/(3600*24*365)), d = Math.floor((s%(3600*24*365))/(3600*24)), h = Math.floor((s%(3600*24))/3600), m = Math.floor((s%3600)/60); s = (s%60).toFixed(1); return y>0 ? `${y}y ${d}d ${h}h` : d>0 ? `${d}d ${h}h ${m}m` : h>0 ? `${h}h ${m}m ${s}s` : m>0 ? `${m}m ${s}s` : `${s}s`; }
         function formatYrs(y) { return y < 1 ? (y * 365).toFixed(1) + " days" : y > 1000 ? (y/1000).toFixed(1) + "k yrs" : y.toFixed(2) + " yrs"; }
 
-        const facts = ["Black holes do not suck everything in like vacuum cleaners.", "The first image of a black hole was released in 2019.", "Our galaxy contains a supermassive black hole at its center.", "Light itself bends around a black hole.", "Some black holes are billions of times more massive than the Sun."];
+        const facts = ["Black holes do not suck everything in like vacuum cleaners.", "The first image of a black hole was released in 2019.", "Our galaxy contains a supermassive black hole at its center.", "Light itself bends around a black hole.", "Some black holes are billions of times more massive than the Sun.", "If you fell into a black hole, you'd undergo 'spaghettification'."];
         setInterval(() => { document.getElementById('random-fact').textContent = facts[Math.floor(Math.random() * facts.length)]; }, 8000);
 
         const elDistStatus = document.getElementById('info-distance-status'), elDistDesc = document.getElementById('info-distance-desc');
@@ -738,6 +766,10 @@
                 });
                 
                 solarCamera.position.x = Math.sin(uniforms.uMouse.value.x * Math.PI) * 80; solarCamera.position.z = Math.cos(uniforms.uMouse.value.x * Math.PI) * 80; solarCamera.position.y = 40 + (uniforms.uMouse.value.y * 100); solarCamera.lookAt(0, 0, 0);
+                
+                // Slowly rotate spacetime grid in solar mode
+                if (showGrid) ssGrid.rotation.y += delta * 0.05;
+
                 renderer.render(solarScene, solarCamera);
                 
                 if (keys.left) uniforms.uMouse.value.x -= moveStep * 10 * delta; if (keys.right) uniforms.uMouse.value.x += moveStep * 10 * delta;
